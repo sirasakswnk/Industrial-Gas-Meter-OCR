@@ -24,7 +24,17 @@ evaluate.py — วัดความแม่นยำการอ่านค�
   --mode deskew = server.SEND_DESKEWED_TO_GEMINI = True  (ส่งภาพที่ดัดตรงแล้ว)
   --mode crop   = server.SEND_DESKEWED_TO_GEMINI = False (ส่ง crop แนวแกน ไม่ใช่ภาพต้นฉบับ)
 
-ผลลัพธ์ eval_output/<mode>/<run_id>/
+  --engine glm  = อ่านด้วย GLM-OCR ผ่าน Ollama บนเครื่อง (ไม่มีโควต้า ไม่ถามยืนยัน)
+    python evaluate.py --engine glm --mode deskew --run-id glm19
+    pipeline ภาพเดียวกัน (OBB -> deskew -> detailEnhance) แล้วเรียก GlmEngine.read ทั้งชุดในครั้งเดียว
+    เหมือน /api/ocr; ผลอยู่ที่ eval_output/glm_<mode>/<run_id>/
+    ให้คะแนนเหมือน Gemini ทุกฟิลด์ ยกเว้น turbine_v_m3 ใช้ "ตัวเลขตรง" (ตัดจุดและ 0 นำหน้าแล้วเทียบ)
+    เพราะ prompt ของ GLM สั่งให้อ่านลูกกลิ้งโดยไม่ใส่จุดทศนิยม (การวางทศนิยมเป็นหน้าที่ checkbox ของผู้ใช้)
+
+  Gemini: เจอ 429 (โควต้าหมด) -> ไม่ retry และหยุดทั้งรอบทันที (retry มีแต่เผาโควต้า — PROJECT_CONTEXT ข้อ 13)
+          ชุดที่เหลือรันวันถัดไปด้วย --retry-errors
+
+ผลลัพธ์ eval_output/<mode>/<run_id>/ (Gemini) หรือ eval_output/glm_<mode>/<run_id>/ (GLM)
   raw/<set_id>.json            สถานะการเรียก, OBB class, error และ response.text
   raw/<set_id>.response.txt    response.text ดิบจาก Gemini
   field_results.csv, set_results.csv, summary.md
@@ -66,8 +76,11 @@ FIELDS = [
     "correction_factor", "turbine_v_m3", "qm_m3_h", "qb_sm3_h", "pulse_weight",
 ]
 MODES = {"deskew": True, "crop": False}   # ค่าที่ตั้งให้ server.SEND_DESKEWED_TO_GEMINI
+ENGINES = ["gemini", "glm"]
+TURBINE_FIELD = "turbine_v_m3"
 SMALL_N = 5                               # จำนวนน้อยกว่านี้ แสดงเป็นจำนวนพร้อมหมายเหตุ
-RETRYABLE_CODES = {429, 500, 502, 503, 504}
+QUOTA_CODE = 429                          # โควต้าหมด -> หยุดทั้งรอบ ไม่ retry
+RETRYABLE_CODES = {500, 502, 503, 504}
 NUM_RE = re.compile(r"^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$")
 
 # สถานะรายชุด
@@ -78,10 +91,10 @@ CORRECT, MISREAD, HALLUCINATED, MISSED, SKIPPED = (
 EVALUATED = (CORRECT, MISREAD, HALLUCINATED, MISSED)
 
 FIELD_COLUMNS = ["set_id", "group", "n_images", "field", "truth", "predicted", "outcome",
-                 "decimal_shift", "swapped_field", "low_confidence"]
+                 "scoring", "decimal_shift", "swapped_field", "low_confidence"]
 SET_COLUMNS = ["set_id", "group", "n_images", "meter_type_truth", "meter_type_pred",
                "detected_format", "decimal_slots_truth", "obb_classes", "n_correct",
-               "n_evaluated", "status", "meter_type_correct", "exact_match", "error"]
+               "n_evaluated", "status", "meter_type_correct", "exact_match", "elapsed_s", "error"]
 
 
 # ── GROUND TRUTH ──────────────────────────────────────────────────────
@@ -264,8 +277,9 @@ def print_check_report(sets, problems, warnings):
 
 
 # ── RAW STORAGE ───────────────────────────────────────────────────────
-def run_dir(mode, run_id):
-    return OUT_ROOT / mode / run_id
+def run_dir(mode, run_id, engine="gemini"):
+    # Gemini คงโครงเดิม eval_output/<mode>/<run_id> ; engine อื่นแยกโฟลเดอร์ไม่ให้ raw ปนกัน
+    return OUT_ROOT / (mode if engine == "gemini" else f"{engine}_{mode}") / run_id
 
 
 def meta_path(rdir, set_id):
@@ -310,19 +324,23 @@ def error_code(exc):
     return int(m.group(1)) if m else None
 
 
-def process_set(server, s, mode, run_id, retries, delay):
+def process_set(server, s, mode, run_id, retries, delay, engine="gemini", glm=None):
+    """เตรียมภาพชุดเดียวด้วย pipeline เดียวกับ /api/ocr แล้วเรียก engine 1 ครั้งต่อชุด
+    glm = GlmEngine (เมื่อ engine == "glm") — เก็บผลเป็น JSON รูปเดียวกับของ Gemini ให้ score_run ใช้ร่วม"""
     from PIL import Image, ImageOps
 
     meta = {
-        "set_id": s["set_id"], "mode": mode, "run_id": run_id,
+        "set_id": s["set_id"], "mode": mode, "run_id": run_id, "engine": engine,
         "send_deskewed_to_gemini": server.SEND_DESKEWED_TO_GEMINI,
-        "gemini_model": server.GEMINI_MODEL,
+        "model": glm.model if engine == "glm" else server.GEMINI_MODEL,
         "images": [p.name for p in s["paths"]],
         "obb_classes": [], "status": None, "error": None,
-        "called_api": False, "attempts": 0, "response_text": None,
+        "called_api": False, "attempts": 0, "response_text": None, "elapsed_s": None,
         "timestamp": datetime.now().isoformat(timespec="seconds"),
     }
-    request_id = f"eval_{mode}_{run_id}_{safe_name(s['set_id'])}"
+    if engine == "gemini":
+        meta["gemini_model"] = server.GEMINI_MODEL   # ชื่อเดิม (raw รุ่นก่อนใช้ key นี้)
+    request_id = f"eval_{engine}_{mode}_{run_id}_{safe_name(s['set_id'])}"
 
     images, classes = [], []
     try:
@@ -342,6 +360,41 @@ def process_set(server, s, mode, run_id, retries, delay):
         meta["status"] = BLOCKED
         return meta
 
+    if engine == "glm":
+        return _call_glm(glm, images, classes, meta)
+    return _call_gemini(server, images, classes, meta, retries, delay)
+
+
+def _call_glm(glm, images, classes, meta):
+    """GlmEngine.read ตัวเดียวกับระบบจริง -> เก็บ raw_values (สตริงตามที่ GLM เขียน) เป็น JSON
+    Ollama ติดต่อไม่ได้ -> raise ออกไปให้ main หยุดทั้งรอบ (ทุกชุดต่อจากนี้จะพังเหมือนกัน)"""
+    from ocr_engines.glm_engine import OllamaUnavailableError
+
+    meta["called_api"] = True
+    meta["attempts"] = 1
+    t0 = time.time()
+    try:
+        result = glm.read(images, classes)
+    except OllamaUnavailableError:
+        raise
+    except Exception as e:
+        meta.update(status=API_ERROR, error=f"{type(e).__name__}: {e}",
+                    elapsed_s=round(time.time() - t0, 2))
+        return meta
+    meta["elapsed_s"] = round(time.time() - t0, 2)
+    meta["response_text"] = json.dumps({
+        "meter_type": result.meter_type,
+        "detected_format": result.detected_format,
+        **result.raw_values,
+        "low_confidence_fields": [],
+    }, ensure_ascii=False, indent=2)
+    meta["glm_raw_text"] = result.raw_text              # ข้อความที่ GLM ถอดจากจอ (ไว้ตรวจว่าทำไมได้/ไม่ได้ค่า)
+    meta["confidence_scores"] = result.confidence_scores  # เก็บไว้วิเคราะห์ ไม่ใช้ให้คะแนน
+    meta["status"] = OK
+    return meta
+
+
+def _call_gemini(server, images, classes, meta, retries, delay):
     contents = list(images) + [server.build_gemini_prompt(classes)]
     config = server.types.GenerateContentConfig(
         system_instruction=server.SYSTEM_INSTRUCTION,
@@ -352,11 +405,16 @@ def process_set(server, s, mode, run_id, retries, delay):
     meta["called_api"] = True
     for attempt in range(retries + 1):
         meta["attempts"] = attempt + 1
+        t0 = time.time()
         try:
             response = server.client.models.generate_content(
                 model=server.GEMINI_MODEL, contents=contents, config=config)
         except Exception as e:
             code = error_code(e)
+            if code == QUOTA_CODE:
+                # โควต้าหมด: retry ไม่ช่วยจนกว่าจะรีเซ็ต และอาจเผาโควต้า -> ให้ main หยุดทั้งรอบ
+                meta.update(status=API_ERROR, error=f"{type(e).__name__}: {e}", quota_exhausted=True)
+                return meta
             if code in RETRYABLE_CODES and attempt < retries:
                 wait = max(delay, 2.0) * (2 ** attempt)
                 print(f"    HTTP {code} — รอ {wait:.0f} วินาทีแล้วลองใหม่ "
@@ -365,6 +423,7 @@ def process_set(server, s, mode, run_id, retries, delay):
                 continue
             meta.update(status=API_ERROR, error=f"{type(e).__name__}: {e}")
             return meta
+        meta["elapsed_s"] = round(time.time() - t0, 2)
 
         try:
             meta["response_text"] = response.text
@@ -428,6 +487,18 @@ def is_decimal_shift(truth_str, pred):
     return a != "" and a == b
 
 
+def turbine_digits(s):
+    """สตริงตัวเลขของลูกกลิ้ง: ตัดจุดและ 0 นำหน้า ("1529623.69" -> "152962369")
+    ไม่ตัด 0 ท้าย — ลูกกลิ้งช่องแดงที่เป็น 0 ก็เป็นหลักหนึ่ง (161567.0 -> "1615670")"""
+    return str(s).strip().replace(".", "").lstrip("0") or "0"
+
+
+def digits_rule_applies(engine, field):
+    """GLM อ่านลูกกลิ้งโดยไม่ใส่จุดทศนิยม (prompt สั่งไว้ — การวางทศนิยมเป็นหน้าที่ checkbox ของผู้ใช้)
+    -> turbine ของ GLM ให้คะแนนแบบตัวเลขตรง; Gemini และฟิลด์อื่นทั้งหมดให้คะแนนแบบเข้มงวดเหมือนเดิม"""
+    return engine == "glm" and field == TURBINE_FIELD
+
+
 def score_run(sets, rdir):
     """อ่าน raw ของ run แล้วเทียบกับ ground truth ปัจจุบัน -> (field_rows, set_rows, notes)"""
     field_rows, set_rows, notes = [], [], []
@@ -447,6 +518,7 @@ def score_run(sets, rdir):
 
         status = meta["status"] if meta else NOT_RUN
         error = (meta or {}).get("error") or ""
+        engine = (meta or {}).get("engine") or "gemini"   # raw รุ่นก่อนมีแต่ Gemini
         if meta and meta.get("images") != file_names:
             notes.append(f"{s['set_id']}: ภาพใน ground truth ({', '.join(file_names)}) ไม่ตรงกับตอนรัน "
                          f"({', '.join(meta.get('images') or [])}) — ควรรันชุดนี้ใหม่ด้วย --force")
@@ -465,14 +537,16 @@ def score_run(sets, rdir):
             "detected_format": "", "decimal_slots_truth": s["decimal_slots"],
             "obb_classes": ";".join(c or "none" for c in (meta or {}).get("obb_classes", [])),
             "n_correct": "", "n_evaluated": "", "status": status,
-            "meter_type_correct": "", "exact_match": "", "error": error,
+            "meter_type_correct": "", "exact_match": "",
+            "elapsed_s": "" if (meta or {}).get("elapsed_s") is None else meta["elapsed_s"],
+            "error": error,
         }
 
         if status != OK:
             for f in FIELDS:
                 field_rows.append({**base, **hidden, "_kind": s["truth"][f][1], "field": f,
                                    "truth": s["truth"][f][0], "predicted": "", "outcome": status,
-                                   "decimal_shift": "", "swapped_field": "", "low_confidence": ""})
+                                   "scoring": "", "decimal_shift": "", "swapped_field": "", "low_confidence": ""})
             set_rows.append(set_row)
             continue
 
@@ -484,15 +558,22 @@ def score_run(sets, rdir):
         n_eval = n_ok = 0
         for f in FIELDS:
             truth_str, kind = s["truth"][f]
-            p = coerce_pred(pred.get(f))
+            raw = pred.get(f)
+            p = coerce_pred(raw)
             is_num = isinstance(p, float)
             decimal_shift, swapped = False, ""
+            digits_rule = digits_rule_applies(engine, f)
 
             if kind == "?":
                 outcome = SKIPPED
             elif kind == "NUM":
                 if p is None:
                     outcome = MISSED
+                elif digits_rule:
+                    # ตัดสินด้วยตัวเลขอย่างเดียว ไม่ถอยไปเทียบ float: เฉลย 161567.0 (ช่องแดงเป็น 0)
+                    # กับ GLM "161567" มีค่าเท่ากันแบบ float แต่ GLM อ่านขาดไป 1 หลัก -> ต้องนับผิด
+                    outcome = (CORRECT if is_num and turbine_digits(raw) == turbine_digits(truth_str)
+                               else MISREAD)
                 elif is_num and p == float(truth_str):
                     outcome = CORRECT
                 else:
@@ -510,7 +591,10 @@ def score_run(sets, rdir):
 
             field_rows.append({
                 **base, **hidden, "_kind": kind, "_pred_is_num": is_num,
-                "field": f, "truth": truth_str, "predicted": display_pred(p), "outcome": outcome,
+                "field": f, "truth": truth_str,
+                # GLM เก็บค่าเป็นสตริงตามที่โมเดลเขียน -> แสดงตามนั้น (ไม่ผ่าน float)
+                "predicted": raw.strip() if isinstance(raw, str) and is_num else display_pred(p),
+                "outcome": outcome, "scoring": "digits" if digits_rule else "strict",
                 "decimal_shift": decimal_shift, "swapped_field": swapped,
                 "low_confidence": f in low,
             })
@@ -580,19 +664,23 @@ def breakdown(lines, title, head, rows, key_fn, order=None):
             f"| {frac(sum(r['outcome'] == HALLUCINATED for r in na), len(na))} |")
 
 
-def build_summary(sets, field_rows, set_rows, notes, rdir, mode, run_id):
+def engine_flag(engine):
+    return "" if engine == "gemini" else f" --engine {engine}"
+
+
+def build_summary(sets, field_rows, set_rows, notes, rdir, mode, run_id, engine="gemini"):
     m = compute_metrics(field_rows, set_rows)
     st = m["status"]
     metas = [x for x in (read_meta(rdir, s["set_id"]) for s in sets) if x]
-    models = sorted({str(x.get("gemini_model")) for x in metas})
+    models = sorted({str(x.get("model") or x.get("gemini_model")) for x in metas})
     flags = sorted({str(x.get("send_deskewed_to_gemini")) for x in metas})
     ev = [r for r in field_rows if r["outcome"] in EVALUATED]
 
-    L = [f"# ผลประเมินการอ่านค่า — mode `{mode}` / run `{run_id}`", "",
+    L = [f"# ผลประเมินการอ่านค่า — engine `{engine}` / mode `{mode}` / run `{run_id}`", "",
          f"- สร้างเมื่อ: {datetime.now():%Y-%m-%d %H:%M:%S}",
          f"- ground truth: `{GT_XLSX}` (แก้ไขล่าสุด "
          f"{datetime.fromtimestamp(GT_XLSX.stat().st_mtime):%Y-%m-%d %H:%M:%S})",
-         f"- Gemini model: {', '.join(models) or '-'} | "
+         f"- engine: {engine} | model: {', '.join(models) or '-'} | "
          f"SEND_DESKEWED_TO_GEMINI: {', '.join(flags) or '-'}",
          f"- ชุดทั้งหมด {len(set_rows)}: ประเมินได้ {st[OK]} | blocked_mixed_types {st[BLOCKED]}"
          f" | api_error {st[API_ERROR]} | ยังไม่ได้รัน {st[NOT_RUN]}"]
@@ -602,12 +690,12 @@ def build_summary(sets, field_rows, set_rows, notes, rdir, mode, run_id):
         L += ["", f"> ⚠️ **คำเตือน: ยังมี {len(err_ids)} ชุดที่เป็น api_error** "
                   f"({', '.join(err_ids)})",
               "> ตัวเลขทั้งหมดในรายงานนี้ **ไม่รวม** ชุดเหล่านี้ รันซ้ำเฉพาะชุดที่ error ด้วย:",
-              f"> `python evaluate.py --mode {mode} --run-id {run_id} --retry-errors`"]
+              f"> `python evaluate.py{engine_flag(engine)} --mode {mode} --run-id {run_id} --retry-errors`"]
     nr_ids = [r["set_id"] for r in set_rows if r["status"] == NOT_RUN]
     if nr_ids:
         L += ["", f"> ⚠️ **ยังไม่ได้รัน {len(nr_ids)} ชุด** ({', '.join(nr_ids)}) — ไม่นับในรายงานนี้"]
     if len(models) > 1 or len(flags) > 1:
-        L += ["", "> ⚠️ **raw ใน run นี้ใช้ค่าตั้งไม่เหมือนกันทุกชุด** (Gemini model หรือ "
+        L += ["", "> ⚠️ **raw ใน run นี้ใช้ค่าตั้งไม่เหมือนกันทุกชุด** (model หรือ "
                   "SEND_DESKEWED_TO_GEMINI) — ควรรันใหม่ด้วย --force"]
     for n in notes:
         L += ["", f"> ⚠️ {md(n)}"]
@@ -622,6 +710,28 @@ def build_summary(sets, field_rows, set_rows, notes, rdir, mode, run_id):
           "",
           f"- ไม่นับฟิลด์ที่ค่าจริงเป็น `?` ({m['skipped']} ฟิลด์) และชุดที่ไม่ได้ประเมิน",
           f"- ค่าที่มีจำนวนน้อยกว่า {SMALL_N} แสดงเป็นจำนวนเท่านั้น พร้อมหมายเหตุ (จำนวนน้อย)"]
+
+    digits_rows = [r for r in ev if r["scoring"] == "digits" and r["_kind"] == "NUM"]
+    if digits_rows:
+        strict_ok = [r for r in digits_rows if r["outcome"] == CORRECT
+                     and r["_pred_is_num"] and float(r["predicted"]) == float(r["truth"])]
+        L += ["", "## วิธีให้คะแนน turbine_v_m3", "",
+              f"- engine `{engine}`: **ตัวเลขตรง** — ตัดจุดทศนิยมและ 0 นำหน้าแล้วเทียบ "
+              "(prompt ของ GLM สั่งให้อ่านลูกกลิ้งโดยไม่ใส่จุด การวางทศนิยมเป็นหน้าที่ checkbox ของผู้ใช้)",
+              "- ฟิลด์อื่นทั้งหมดให้คะแนนแบบเข้มงวด (ค่าต้องเท่ากันรวมตำแหน่งทศนิยม) เหมือน Gemini",
+              f"- turbine ที่ค่าจริงมีตัวเลข {len(digits_rows)} ฟิลด์: ตัวเลขตรง "
+              f"{sum(r['outcome'] == CORRECT for r in digits_rows)} | "
+              f"ถ้าใช้เกณฑ์เข้มงวดจะถูก {len(strict_ok)}"]
+
+    times = [float(r["elapsed_s"]) for r in set_rows if r["status"] == OK and r["elapsed_s"] != ""]
+    if times:
+        ts = sorted(times)
+        mid = len(ts) // 2
+        median = ts[mid] if len(ts) % 2 else (ts[mid - 1] + ts[mid]) / 2
+        L += ["", "## เวลาเรียก engine ต่อชุด", "",
+              f"- {len(ts)} ชุด: เฉลี่ย {sum(ts) / len(ts):.2f} s | มัธยฐาน {median:.2f} s | "
+              f"ช่วง {ts[0]:.2f}–{ts[-1]:.2f} s",
+              "- วัดเฉพาะการเรียก engine (ไม่รวม OBB/preprocess) — Gemini รวมเครือข่ายและคิวของ server"]
 
     n1, n2 = m["num_total"], m["na_total"]
     L += ["", "## ผลรวมรายฟิลด์", "",
@@ -681,12 +791,12 @@ def build_summary(sets, field_rows, set_rows, notes, rdir, mode, run_id):
     bad = [r for r in ev if r["outcome"] != CORRECT]
     L += ["", f"## รายการฟิลด์ที่ไม่ correct ({len(bad)} ฟิลด์)", ""]
     if bad:
-        L += ["| set_id | ภาพ | field | ค่าจริง | ระบบตอบ | outcome | decimal_shift | swapped_field "
-              "| low_conf | detected_format | decimal_slots_truth |",
-              "|---|---|---|---|---|---|---|---|---|---|---|"]
+        L += ["| set_id | ภาพ | field | ค่าจริง | ระบบตอบ | outcome | scoring | decimal_shift "
+              "| swapped_field | low_conf | detected_format | decimal_slots_truth |",
+              "|---|---|---|---|---|---|---|---|---|---|---|---|"]
         for r in bad:
             L.append(f"| {md(r['set_id'])} | {md(r['_images'])} | {r['field']} | {md(r['truth'])} "
-                     f"| {md(r['predicted'])} | {r['outcome']} | {r['decimal_shift']} "
+                     f"| {md(r['predicted'])} | {r['outcome']} | {r['scoring']} | {r['decimal_shift']} "
                      f"| {md(r['swapped_field'])} | {r['low_confidence']} "
                      f"| {md(r['_detected_format'])} | {md(r['_decimal_slots'])} |")
     else:
@@ -702,7 +812,7 @@ def build_summary(sets, field_rows, set_rows, notes, rdir, mode, run_id):
     return "\n".join(L) + "\n"
 
 
-def write_run_outputs(sets, rdir, mode, run_id):
+def write_run_outputs(sets, rdir, mode, run_id, engine="gemini"):
     field_rows, set_rows, notes = score_run(sets, rdir)
     rdir.mkdir(parents=True, exist_ok=True)
     for path, columns, rows in ((rdir / "field_results.csv", FIELD_COLUMNS, field_rows),
@@ -712,12 +822,12 @@ def write_run_outputs(sets, rdir, mode, run_id):
             w.writeheader()
             w.writerows(rows)
     (rdir / "summary.md").write_text(
-        build_summary(sets, field_rows, set_rows, notes, rdir, mode, run_id), encoding="utf-8")
+        build_summary(sets, field_rows, set_rows, notes, rdir, mode, run_id, engine), encoding="utf-8")
 
     m = compute_metrics(field_rows, set_rows)
     st = m["status"]
     print("\n" + "=" * 72)
-    print(f"ผล mode {mode} / run {run_id}")
+    print(f"ผล engine {engine} / mode {mode} / run {run_id}")
     print("=" * 72)
     print(f"ชุด: ประเมินได้ {st[OK]} | blocked_mixed_types {st[BLOCKED]} | "
           f"api_error {st[API_ERROR]} | ยังไม่ได้รัน {st[NOT_RUN]}")
@@ -725,7 +835,7 @@ def write_run_outputs(sets, rdir, mode, run_id):
     print(f"(2) ฟิลด์ที่ค่าจริงเป็น NA — hallucinated: {frac(m['na_hall'], m['na_total'])}")
     if st[API_ERROR]:
         print(f"คำเตือน: ยังมี {st[API_ERROR]} ชุด api_error — "
-              f"รันซ้ำด้วย --mode {mode} --run-id {run_id} --retry-errors")
+              f"รันซ้ำด้วย{engine_flag(engine)} --mode {mode} --run-id {run_id} --retry-errors")
     print(f"ไฟล์ผลลัพธ์: {rdir}/ (field_results.csv, set_results.csv, summary.md)")
 
 
@@ -820,10 +930,28 @@ def write_compare(sets):
     print(f"\ncompare.md: เทียบ {len(runs)} run -> {OUT_ROOT / 'compare.md'}")
 
 
+def load_glm_engine():
+    """สร้าง GlmEngine ตัวเดียวกับที่ server ใช้ แล้วเช็กว่า Ollama เปิดอยู่และมีโมเดล — ไม่พร้อมให้หยุดก่อนเริ่ม"""
+    import httpx
+    import ocr_engines
+    glm = ocr_engines.create_engine("glm")
+    try:
+        tags = httpx.get(f"{glm.base_url}/api/tags", timeout=5).json()
+    except Exception:
+        sys.exit(f"หยุด: ติดต่อ Ollama ที่ {glm.base_url} ไม่ได้ — เปิด `ollama serve` แล้วรันใหม่")
+    names = {m.get("name") for m in tags.get("models", [])}
+    if glm.model not in names:
+        sys.exit(f"หยุด: Ollama ยังไม่มีโมเดล '{glm.model}' — ติดตั้งด้วย `ollama pull {glm.model}` "
+                 f"(ที่มี: {', '.join(sorted(n for n in names if n)) or '-'})")
+    return glm
+
+
 # ── MAIN ──────────────────────────────────────────────────────────────
 def parse_args():
     ap = argparse.ArgumentParser(description="วัดความแม่นยำการอ่านค่าของระบบ Gas Meter OCR")
     ap.add_argument("--mode", choices=list(MODES), help="deskew หรือ crop")
+    ap.add_argument("--engine", choices=ENGINES, default="gemini",
+                    help="gemini (default) หรือ glm (GLM-OCR ผ่าน Ollama บนเครื่อง)")
     ap.add_argument("--run-id", default="run1", help="ชื่อรอบการรัน (default: run1)")
     ap.add_argument("--check", action="store_true", help="ตรวจ ground truth อย่างเดียว")
     ap.add_argument("--rescore", action="store_true", help="คำนวณผลใหม่จาก raw ไม่เรียก Gemini")
@@ -832,7 +960,8 @@ def parse_args():
     ap.add_argument("--compare", action="store_true", help="สร้าง eval_output/compare.md ใหม่")
     ap.add_argument("--yes", action="store_true", help="ไม่ถามยืนยันก่อนเรียก Gemini")
     ap.add_argument("--delay", type=float, default=4.0, help="วินาทีระหว่างการเรียก (default 4)")
-    ap.add_argument("--retries", type=int, default=3, help="จำนวนครั้งที่ลองซ้ำเมื่อเจอ 429/5xx")
+    ap.add_argument("--retries", type=int, default=3,
+                    help="Gemini: จำนวนครั้งที่ลองซ้ำเมื่อเจอ 5xx (429 ไม่ลองซ้ำ — หยุดทั้งรอบ)")
     args = ap.parse_args()
 
     if not re.fullmatch(r"[A-Za-z0-9_.-]+", args.run_id):
@@ -862,16 +991,16 @@ def main():
     print_check_report(sets, problems, warnings)
     if args.check:
         if args.mode and not problems:
-            print_run_status(sets, run_dir(args.mode, args.run_id))
+            print_run_status(sets, run_dir(args.mode, args.run_id, args.engine))
         sys.exit(1 if problems else 0)
     if problems:
         sys.exit("\nหยุด: แก้ปัญหาใน ground truth ก่อน ห้ามรันต่อ")
 
-    rdir = run_dir(args.mode, args.run_id)
+    rdir = run_dir(args.mode, args.run_id, args.engine)
     if args.rescore:
         if not any((rdir / "raw").glob("*.json")):
             sys.exit(f"\nไม่พบไฟล์ raw ใน {rdir}/raw — ต้องรันก่อนจึงจะ --rescore ได้")
-        write_run_outputs(sets, rdir, args.mode, args.run_id)
+        write_run_outputs(sets, rdir, args.mode, args.run_id, args.engine)
         write_compare(sets)
         return
 
@@ -885,8 +1014,8 @@ def main():
     n_have = sum(1 for m in metas.values() if m)
 
     print("\n" + "=" * 72)
-    print(f"แผนการรัน: mode {args.mode} (SEND_DESKEWED_TO_GEMINI = {MODES[args.mode]}) | "
-          f"run {args.run_id}")
+    print(f"แผนการรัน: engine {args.engine} | mode {args.mode} "
+          f"(SEND_DESKEWED_TO_GEMINI = {MODES[args.mode]}) | run {args.run_id}")
     print("=" * 72)
     print(f"โฟลเดอร์ผล: {rdir}/ | มี raw แล้ว {n_have}/{len(sets)} ชุด")
     if args.retry_errors:
@@ -897,10 +1026,14 @@ def main():
         print(f"จะรัน {len(targets)} ชุดที่ยังไม่มี raw | ข้าม {len(sets) - len(targets)} ชุด")
 
     if targets:
-        print(f"เรียก Gemini สูงสุด {len(targets)} ครั้ง (ชุดที่ถูกบล็อกจะไม่เรียก) "
-              f"เว้นระยะ {args.delay:g} วินาที, retry {args.retries} ครั้ง")
+        glm = args.engine == "glm"
+        if glm:
+            print(f"เรียก GLM (Ollama บนเครื่อง ไม่มีโควต้า) {len(targets)} ครั้ง — ไม่ถามยืนยัน")
+        else:
+            print(f"เรียก Gemini สูงสุด {len(targets)} ครั้ง (ชุดที่ถูกบล็อกจะไม่เรียก) "
+                  f"เว้นระยะ {args.delay:g} วินาที, retry 5xx {args.retries} ครั้ง, เจอ 429 หยุดทันที")
         print("ชุด: " + ", ".join(s["set_id"] for s in targets))
-        if not args.yes:
+        if not glm and not args.yes:
             if not sys.stdin.isatty():
                 sys.exit("\nต้องยืนยันก่อนเรียก Gemini: รันในเทอร์มินัลแล้วตอบ y หรือใส่ --yes")
             if input("\nยืนยันเรียก Gemini? พิมพ์ y แล้วกด Enter: ").strip().lower() != "y":
@@ -908,30 +1041,50 @@ def main():
                 return
 
         print("\nกำลังโหลด server.py ...", flush=True)
-        import server   # โหลดหลังยืนยันเท่านั้น (โหลดโมเดล OBB + Gemini client)
+        import server   # โหลดหลังยืนยันเท่านั้น (โหลดโมเดล OBB + engine ตาม .env)
 
         server.SEND_DESKEWED_TO_GEMINI = MODES[args.mode]   # ตั้งค่าในสคริปต์นี้เท่านั้น
         if server.obb_model is None:
             sys.exit("หยุด: server.py โหลดโมเดล OBB ไม่ได้ — ผลประเมินจะไม่ตรงกับระบบที่ใช้งานจริง")
 
+        glm_engine = None
+        if glm:
+            glm_engine = load_glm_engine()
+        elif server.client is None:
+            sys.exit(f"หยุด: server.py ไม่ได้สร้าง Gemini client (OCR_ENGINE ใน .env = "
+                     f"'{server.OCR_ENGINE}') — ตั้ง OCR_ENGINE=gemini ก่อนรัน --engine gemini")
+
+        from ocr_engines.glm_engine import OllamaUnavailableError
         last_api_call = None
         for i, s in enumerate(targets, 1):
-            if last_api_call is not None and args.delay > 0:
+            if not glm and last_api_call is not None and args.delay > 0:
                 wait = args.delay - (time.time() - last_api_call)
                 if wait > 0:
                     time.sleep(wait)
             print(f"[{i}/{len(targets)}] {s['set_id']} ({len(s['paths'])} ภาพ) ...", flush=True)
-            meta = process_set(server, s, args.mode, args.run_id, args.retries, args.delay)
+            try:
+                meta = process_set(server, s, args.mode, args.run_id, args.retries, args.delay,
+                                   engine=args.engine, glm=glm_engine)
+            except OllamaUnavailableError as e:
+                sys.exit(f"\nหยุด: {e}\nชุดที่รันไปแล้วถูกเก็บไว้ รันคำสั่งเดิมซ้ำได้ (จะรันเฉพาะชุดที่ยังไม่มีผล)")
             if meta["called_api"]:
                 last_api_call = time.time()
             save_meta(rdir, meta)
             classes = ", ".join(c or "none" for c in meta["obb_classes"]) or "-"
             extra = f" — {meta['error'][:160]}" if meta["error"] else ""
-            print(f"    {meta['status']} | OBB: {classes}{extra}", flush=True)
+            took = f" | {meta['elapsed_s']:.1f} s" if meta.get("elapsed_s") is not None else ""
+            print(f"    {meta['status']} | OBB: {classes}{took}{extra}", flush=True)
+            if meta.get("quota_exhausted"):
+                rest = [t["set_id"] for t in targets[i:]]
+                print(f"\n⛔ Gemini ตอบ 429 (โควต้าหมด) — หยุดทันที ไม่เรียกชุดที่เหลือ "
+                      f"({', '.join(rest) or '-'})")
+                print(f"   รอโควต้ารีเซ็ตแล้วรัน: python evaluate.py --mode {args.mode} "
+                      f"--run-id {args.run_id} --retry-errors  (และคำสั่งเดิมสำหรับชุดที่ยังไม่ได้รัน)")
+                break
     else:
-        print("ไม่มีชุดที่ต้องเรียก Gemini — คำนวณผลจาก raw ที่มีอยู่")
+        print("ไม่มีชุดที่ต้องเรียก engine — คำนวณผลจาก raw ที่มีอยู่")
 
-    write_run_outputs(sets, rdir, args.mode, args.run_id)
+    write_run_outputs(sets, rdir, args.mode, args.run_id, args.engine)
     write_compare(sets)
 
 
