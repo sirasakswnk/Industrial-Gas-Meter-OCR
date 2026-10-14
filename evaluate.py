@@ -32,7 +32,8 @@ evaluate.py — วัดความแม่นยำการอ่านค�
     เพราะ prompt ของ GLM สั่งให้อ่านลูกกลิ้งโดยไม่ใส่จุดทศนิยม (การวางทศนิยมเป็นหน้าที่ checkbox ของผู้ใช้)
 
   Gemini: เจอ 429 (โควต้าหมด) -> ไม่ retry และหยุดทั้งรอบทันที (retry มีแต่เผาโควต้า — PROJECT_CONTEXT ข้อ 13)
-          ชุดที่เหลือรันวันถัดไปด้วย --retry-errors
+          เจอ 5xx (เช่น 503 high demand) ติดกัน 2 ชุด -> หยุดทั้งรอบ (server ล่ม ชุดต่อไปก็ล้มเหมือนกัน)
+          ชุดที่เหลือรันภายหลังด้วย --retry-errors (ชุดที่ error) และคำสั่งเดิม (ชุดที่ยังไม่ได้รัน)
 
 ผลลัพธ์ eval_output/<mode>/<run_id>/ (Gemini) หรือ eval_output/glm_<mode>/<run_id>/ (GLM)
   raw/<set_id>.json            สถานะการเรียก, OBB class, error และ response.text
@@ -81,6 +82,7 @@ TURBINE_FIELD = "turbine_v_m3"
 SMALL_N = 5                               # จำนวนน้อยกว่านี้ แสดงเป็นจำนวนพร้อมหมายเหตุ
 QUOTA_CODE = 429                          # โควต้าหมด -> หยุดทั้งรอบ ไม่ retry
 RETRYABLE_CODES = {500, 502, 503, 504}
+MAX_CONSECUTIVE_UNAVAILABLE = 2           # Gemini ล่ม (5xx) ติดกันกี่ชุดแล้วหยุดทั้งรอบ
 NUM_RE = re.compile(r"^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$")
 
 # สถานะรายชุด
@@ -421,7 +423,7 @@ def _call_gemini(server, images, classes, meta, retries, delay):
                       f"({attempt + 1}/{retries})", flush=True)
                 time.sleep(wait)
                 continue
-            meta.update(status=API_ERROR, error=f"{type(e).__name__}: {e}")
+            meta.update(status=API_ERROR, error=f"{type(e).__name__}: {e}", http_code=code)
             return meta
         meta["elapsed_s"] = round(time.time() - t0, 2)
 
@@ -1056,6 +1058,7 @@ def main():
 
         from ocr_engines.glm_engine import OllamaUnavailableError
         last_api_call = None
+        unavailable_streak = 0
         for i, s in enumerate(targets, 1):
             if not glm and last_api_call is not None and args.delay > 0:
                 wait = args.delay - (time.time() - last_api_call)
@@ -1080,6 +1083,15 @@ def main():
                       f"({', '.join(rest) or '-'})")
                 print(f"   รอโควต้ารีเซ็ตแล้วรัน: python evaluate.py --mode {args.mode} "
                       f"--run-id {args.run_id} --retry-errors  (และคำสั่งเดิมสำหรับชุดที่ยังไม่ได้รัน)")
+                break
+            unavailable_streak = (unavailable_streak + 1
+                                  if meta.get("http_code") in RETRYABLE_CODES else 0)
+            if unavailable_streak >= MAX_CONSECUTIVE_UNAVAILABLE:
+                rest = [t["set_id"] for t in targets[i:]]
+                print(f"\n⛔ Gemini ตอบ {meta['http_code']} ติดกัน {unavailable_streak} ชุด (server ไม่ว่าง) — "
+                      f"หยุดก่อน ไม่เรียกชุดที่เหลือ ({', '.join(rest) or '-'})")
+                print(f"   รอสักพักแล้วรัน: python evaluate.py --mode {args.mode} --run-id {args.run_id} "
+                      f"--retries 0 --retry-errors  แล้วตามด้วยคำสั่งเดิมไม่มี --retry-errors")
                 break
     else:
         print("ไม่มีชุดที่ต้องเรียก engine — คำนวณผลจาก raw ที่มีอยู่")

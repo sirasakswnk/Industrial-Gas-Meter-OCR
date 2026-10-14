@@ -195,7 +195,20 @@ gm = json.loads(graw[0].read_text(encoding="utf-8"))
 assert gm["status"] == "api_error" and gm["quota_exhausted"] and gm["attempts"] == 1
 print(f"✅ Gemini 429 -> เรียก 1 ครั้งแล้วหยุด ไม่ retry ({len(sets) - 1} ชุดไม่ถูกเรียก)")
 
-# 11. compare.md รวม run ของทั้งสอง engine
+# 11. Gemini 503 ติดกัน 2 ชุด -> หยุด (ชุดที่ 3 ไม่ถูกเรียก)
+def unavailable(**kw):
+    calls["gemini"] += 1
+    raise RuntimeError("503 UNAVAILABLE. This model is currently experiencing high demand")
+
+
+calls["gemini"] = 0
+with mock.patch.object(FakeModels, "generate_content", lambda self, **kw: unavailable(**kw)):
+    run(["--mode", "deskew", "--run-id", "g503", "--yes", "--delay", "0", "--retries", "0"])
+assert calls["gemini"] == 2, calls
+assert len(list((OUT / "deskew" / "g503" / "raw").glob("*.json"))) == 2
+print("✅ Gemini 503 ติดกัน 2 ชุด -> หยุด ไม่เรียกชุดที่เหลือ")
+
+# 12. compare.md รวม run ของทั้งสอง engine
 assert (OUT / "compare.md").exists()
 print("✅ compare.md:", [l.split("|")[1].strip() for l in (OUT / "compare.md").read_text(encoding="utf-8").splitlines() if l.startswith("| ") and "/" in l.split("|")[1]])
 
