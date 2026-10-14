@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>System Architecture Diagram</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0f172a;
+    --muted:#475569;
+    --line:#cbd5e1;
+    --l1:#1d4ed8;  --l1bg:#eff6ff;  --l1br:#bfdbfe;
+    --l2:#15803d;  --l2bg:#f0fdf4;  --l2br:#bbf7d0;
+    --l3:#c2410c;  --l3bg:#fff7ed;  --l3br:#fed7aa;
+    --l4:#334155;  --l4bg:#f8fafc;  --l4br:#cbd5e1;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#f1f5f9}
+  body{
+    font-family:'Sarabun',"TH Sarabun New",sans-serif;
+    color:var(--ink);
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .sheet{
+    width:1000px; margin:24px auto; background:#fff;
+    padding:28px 30px 34px; border-radius:6px;
+  }
+
+  .head{text-align:center; margin-bottom:22px}
+  .head h1{font-size:25px; font-weight:700; margin:0 0 4px; letter-spacing:.2px}
+  .head p{font-size:18px; color:var(--muted); margin:0}
+
+  .stack{display:grid; grid-template-columns:1fr 74px; column-gap:14px; position:relative}
+
+  .band{
+    grid-column:1; display:grid; grid-template-columns:118px 1fr;
+    border:1.5px solid var(--line); border-radius:8px; overflow:hidden;
+  }
+  .tag{
+    padding:14px 10px; color:#fff; display:flex; flex-direction:column;
+    justify-content:center; align-items:center; text-align:center; gap:2px;
+  }
+  .tag b{font-size:24px; font-weight:700; line-height:1}
+  .tag span{font-size:14px; font-weight:500; line-height:1.25}
+  .tag em{font-size:12.5px; font-style:normal; opacity:.9; line-height:1.25}
+
+  .cards{display:flex; gap:10px; padding:12px; align-items:stretch}
+  .card{
+    flex:1; background:#fff; border:1.2px solid var(--line);
+    border-radius:7px; padding:10px 11px; display:flex; flex-direction:column;
+  }
+  .card h3{margin:0; font-size:15.5px; font-weight:700; line-height:1.3}
+  .card .mono{
+    font-family:ui-monospace,"SFMono-Regular",Consolas,monospace;
+    font-size:12.5px; color:var(--muted); margin:2px 0 7px; word-break:break-word;
+  }
+  .card ul{margin:0; padding-left:15px}
+  .card li{font-size:13.5px; line-height:1.45; color:#1e293b; margin-bottom:1px}
+
+  /* layer colours */
+  #l1 .tag{background:var(--l1)} #l1{border-color:var(--l1br); background:var(--l1bg)}
+  #l2 .tag{background:var(--l2)} #l2{border-color:var(--l2br); background:var(--l2bg)}
+  #l3 .tag{background:var(--l3)} #l3{border-color:var(--l3br); background:var(--l3bg)}
+  #l4 .tag{background:var(--l4)} #l4{border-color:var(--l4br); background:var(--l4bg)}
+
+  /* engine group inside L3 */
+  .group{
+    flex:2.05; border:1.6px dashed #ea8a4a; border-radius:7px;
+    padding:8px 9px 10px; background:#fffdfa; display:flex; flex-direction:column;
+  }
+  .group > h3{margin:0; font-size:15.5px; text-align:center}
+  .group > .sub{
+    font-size:12.5px; color:var(--muted); text-align:center; margin:1px 0 8px;
+  }
+  .group .pair{display:flex; gap:9px; flex:1}
+  .group .pair .card{flex:1; background:#fff}
+
+  /* connectors */
+  .conn{
+    grid-column:1; display:flex; align-items:center; justify-content:center;
+    gap:9px; padding:9px 0;
+  }
+  .conn .glyph{font-size:19px; color:#64748b; line-height:1}
+  .conn span{font-size:14.5px; font-weight:600; color:#334155}
+
+  /* side rail L2 <-> L4 */
+  .rail{grid-column:2; grid-row:3 / 7; position:relative}
+  .bracket{
+    position:absolute; left:4px; right:16px;
+    border:2px solid #64748b; border-left:0;
+    border-radius:0 12px 12px 0;
+    top:96px; bottom:96px;            /* refined by script */
+  }
+  .bracket::before,.bracket::after{
+    content:""; position:absolute; left:-9px; width:0; height:0;
+    border-right:9px solid #64748b;
+    border-top:5.5px solid transparent; border-bottom:5.5px solid transparent;
+  }
+  .bracket::before{top:-5.5px; transform:rotate(180deg)}
+  .bracket::after{bottom:-5.5px; transform:rotate(180deg)}
+  .rail-label{
+    position:absolute; left:0; right:14px; top:50%; transform:translateY(-50%);
+    background:#fff; padding:6px 0; text-align:center;
+    font-size:13.5px; font-weight:600; color:#334155; line-height:1.3;
+  }
+
+  .note{
+    margin-top:16px; font-size:13.5px; color:var(--muted); line-height:1.55;
+    border-top:1px solid var(--line); padding-top:10px;
+  }
+  .caption{
+    text-align:center; margin-top:14px; font-size:17px; font-weight:600;
+  }
+
+  @page{size:A4 portrait; margin:10mm}
+  @media print{
+    html,body{background:#fff}
+    .sheet{width:auto; margin:0; padding:0; border-radius:0;
+           zoom:.72}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="head">
+    <h1>Industrial Gas Meter OCR — System Architecture</h1>
+    <p>สถาปัตยกรรมระบบอ่านค่ามิเตอร์ก๊าซอุตสาหกรรมอัตโนมัติด้วยปัญญาประดิษฐ์</p>
+  </div>
+
+  <div class="stack">
+
+    <!-- L1 -->
+    <div class="band" id="l1" style="grid-row:1">
+      <div class="tag"><b>L1</b><span>Presentation<br>Layer</span><em>(Web Browser)</em></div>
+      <div class="cards">
+        <div class="card">
+          <h3>หน้าเลือกชุดมิเตอร์</h3>
+          <div class="mono">static/runs.html</div>
+          <ul>
+            <li>เลือก Meter Run ที่จะจดค่า</li>
+            <li>เพิ่มและลบชุดมิเตอร์</li>
+            <li>แสดง Tag No. ของ EVC และ Turbine</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>หน้าอ่านค่าและตรวจแก้</h3>
+          <div class="mono">static/index.html</div>
+          <ul>
+            <li>อัปโหลดภาพถ่ายได้หลายภาพต่อคำขอ</li>
+            <li>แสดงค่าที่อ่านได้เป็นช่องทีละหลัก</li>
+            <li>ตรวจแก้ค่า บันทึก และออกรายงาน</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>หน้าประวัติการจดค่า</h3>
+          <div class="mono">static/history.html</div>
+          <ul>
+            <li>ตารางประวัติแยกตามชุดมิเตอร์</li>
+            <li>เทียบค่าที่โมเดลอ่านกับค่าที่บันทึก</li>
+            <li>เรียกดูภาพต้นฉบับและออกรายงานซ้ำ</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="conn" style="grid-row:2">
+      <span class="glyph">↕</span><span>HTTP / JSON</span>
+    </div>
+
+    <!-- L2 -->
+    <div class="band" id="l2" style="grid-row:3">
+      <div class="tag"><b>L2</b><span>Application<br>Layer</span><em>(FastAPI /<br>server.py)</em></div>
+      <div class="cards">
+        <div class="card">
+          <h3>รับคำขอและตรวจสอบ<br>ข้อมูลนำเข้า</h3>
+          <ul>
+            <li>ตรวจชนิดไฟล์ที่อัปโหลด</li>
+            <li>สร้างรหัสประจำคำขอ</li>
+            <li>ควบคุมลำดับการทำงาน</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>เตรียมภาพ</h3>
+          <div class="mono">preprocess_meter_image()</div>
+          <ul>
+            <li>ปรับทิศทางตาม EXIF และแปลงเป็น RGB</li>
+            <li>ตรวจจับหน้าปัดด้วย YOLO-OBB</li>
+            <li>ปรับภาพให้ตรงด้วยการแปลงมุมมอง</li>
+            <li>ปรับความคมชัดด้วย OpenCV</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>ตรวจสอบชุดภาพ</h3>
+          <div class="mono">check_request_meter_types()</div>
+          <ul>
+            <li>อนุญาตภาพ EVC หลายภาพคู่กับ Turbine หนึ่งภาพ</li>
+            <li>ปฏิเสธคำขอที่มีภาพ analog เกินหนึ่งภาพ</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>ประกอบผลลัพธ์</h3>
+          <div class="mono">build_ocr_result()</div>
+          <ul>
+            <li>รับค่าดิบจากชั้นแบบจำลอง</li>
+            <li>กรองค่าที่ไม่ใช่ของมิเตอร์ analog ออก</li>
+            <li>เตรียมค่าเริ่มต้นของช่องทีละหลัก</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>คำนวณค่าที่บันทึก</h3>
+          <div class="mono">reading_fields.py</div>
+          <ul>
+            <li>ตัดทศนิยมของ TURBINE V. ตามที่ผู้ใช้เลือก</li>
+            <li>หาฟิลด์ที่ถูกแก้ด้วยมือ</li>
+            <li>คำนวณผลต่างจากการจดครั้งก่อน</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="conn" style="grid-row:4">
+      <span class="glyph">↓</span><span>เรียกใช้แบบจำลอง</span>
+    </div>
+
+    <!-- L3 -->
+    <div class="band" id="l3" style="grid-row:5">
+      <div class="tag"><b>L3</b><span>Model / Config<br>Layer</span></div>
+      <div class="cards">
+        <div class="card">
+          <h3>YOLO-OBB</h3>
+          <div class="mono">best_obb.pt</div>
+          <ul>
+            <li>ตรวจจับตำแหน่งหน้าปัดและมุมทั้งสี่</li>
+            <li>จำแนกชนิดเป็น digital_screen หรือ analog_dial</li>
+            <li>ทำงานบนเครื่องผู้ใช้ผ่าน GPU</li>
+          </ul>
+        </div>
+
+        <div class="group">
+          <h3>ocr_engines/ — OcrEngine (abstract)</h3>
+          <div class="sub">เลือกแบบจำลองด้วยค่า OCR_ENGINE ใน .env</div>
+          <div class="pair">
+            <div class="card">
+              <h3>GeminiEngine</h3>
+              <div class="mono">บริการภายนอก</div>
+              <ul>
+                <li>ส่งภาพทั้งชุดในคำขอเดียว</li>
+                <li>บังคับรูปแบบผลลัพธ์ด้วย MeterReading</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>GlmEngine</h3>
+              <div class="mono">Ollama บนเครื่อง</div>
+              <ul>
+                <li>ส่งหนึ่งภาพต่อหนึ่งคำขอ</li>
+                <li>คำนวณค่าความเชื่อมั่นจาก logprobs</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>MeterReading</h3>
+          <div class="mono">Pydantic Data Contract</div>
+          <ul>
+            <li>นิยามฟิลด์ค่ามิเตอร์ทั้งหมด</li>
+            <li>ใช้บังคับรูปแบบผลลัพธ์</li>
+            <li>ตรวจสอบความถูกต้องก่อนส่งต่อ</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>ค่าตั้งต้นของระบบ</h3>
+          <div class="mono">.env</div>
+          <ul>
+            <li>OCR_ENGINE เลือกแบบจำลองอ่านค่า</li>
+            <li>กุญแจการเข้าถึงบริการภายนอก</li>
+            <li>ไม่ถูกเก็บในระบบควบคุมเวอร์ชัน</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- L4 -->
+    <div class="band" id="l4" style="grid-row:6; margin-top:18px">
+      <div class="tag"><b>L4</b><span>Data &amp; Output<br>Layer</span></div>
+      <div class="cards">
+        <div class="card">
+          <h3>ฐานข้อมูล SQLite</h3>
+          <div class="mono">meter_records.db</div>
+          <ul>
+            <li>ตาราง meter_runs ทะเบียนชุดมิเตอร์</li>
+            <li>ตาราง readings ประวัติการจดค่า</li>
+            <li>เข้าถึงผ่าน db.py ด้วยไลบรารี sqlite3</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>รายงานใบแจ้งปริมาณการใช้ก๊าซ</h3>
+          <div class="mono">report_pdf.py</div>
+          <ul>
+            <li>สร้างจากฐานข้อมูลใหม่ทุกครั้ง ไม่เก็บไฟล์ PDF</li>
+            <li>แสดงค่าครั้งนี้ ครั้งก่อน และผลต่าง</li>
+            <li>ดาวน์โหลดหรือสั่งพิมพ์ได้</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>คลังภาพของระบบ</h3>
+          <div class="mono">ocr_requests/ , debug_images/</div>
+          <ul>
+            <li>เก็บภาพต้นฉบับที่ผู้ใช้อัปโหลด</li>
+            <li>เก็บภาพระหว่างกระบวนการไว้ตรวจสอบย้อนหลัง</li>
+            <li>อ้างอิงกลับไปยังการจดค่าแต่ละครั้ง</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- L2 <-> L4 -->
+    <div class="rail">
+      <div class="bracket"></div>
+      <div class="rail-label">อ่าน /<br>เขียน<br>ข้อมูล</div>
+    </div>
+
+  </div>
+
+  <div class="caption">ภาพที่ 3.1 สถาปัตยกรรมระบบโดยรวม (System Architecture Diagram)</div>
+
+  <div class="note">
+    <b>หมายเหตุการอ่านแผนภาพ</b> — ชั้นที่ 2 เป็นผู้เรียกใช้ทั้งชั้นแบบจำลอง (L3) และชั้นข้อมูล (L4)
+    โดยชั้นแบบจำลองไม่ได้ติดต่อกับฐานข้อมูลโดยตรง ลูกศรด้านขวาจึงเชื่อมจากชั้นที่ 2 ไปยังชั้นที่ 4 โดยไม่ผ่านชั้นที่ 3
+  </div>
+
+</div>
+
+<script>
+  // Align the L2 <-> L4 bracket to the vertical centre of each band.
+  function placeBracket(){
+    var stack = document.querySelector('.stack');
+    var l2 = document.getElementById('l2');
+    var l4 = document.getElementById('l4');
+    var br = document.querySelector('.bracket');
+    var rail = document.querySelector('.rail');
+    if(!stack || !l2 || !l4 || !br || !rail) return;
+    var railTop = rail.getBoundingClientRect().top;
+    var railH   = rail.getBoundingClientRect().height;
+    var r2 = l2.getBoundingClientRect();
+    var r4 = l4.getBoundingClientRect();
+    var top    = (r2.top + r2.height/2) - railTop;
+    var bottom = railH - ((r4.top + r4.height/2) - railTop);
+    br.style.top = Math.max(0, top) + 'px';
+    br.style.bottom = Math.max(0, bottom) + 'px';
+  }
+  window.addEventListener('load', placeBracket);
+  window.addEventListener('resize', placeBracket);
+  window.addEventListener('beforeprint', placeBracket);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeBracket);
+</script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ภาพที่ 3.2 (ข) ลำดับการทำงานของการบันทึกและการออกรายงาน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#f1f5f9}
+  body{font-family:'Sarabun',"TH Sarabun New",sans-serif; color:#0f172a;
+       -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  .sheet{width:1250px; margin:24px auto; background:#fff; padding:26px 28px 30px; border-radius:6px}
+  .head{text-align:center; margin-bottom:8px}
+  .head h1{font-size:22px; font-weight:700; margin:0 0 3px}
+  .head p{font-size:16.5px; color:#475569; margin:0}
+  text{font-family:'Sarabun',"TH Sarabun New",sans-serif}
+  .actor{fill:#fff; font-size:15.5px; font-weight:700}
+  .actorsub{fill:#cbd5e1; font-size:12.5px; font-weight:400}
+  .lbl{fill:#1e293b; font-size:14px}
+  .loop{fill:#1e293b; font-size:12.5px; font-weight:700}
+  .loopnote{fill:#475569; font-size:13px}
+  .legend{fill:#475569; font-size:13px}
+  .caption{text-align:center; margin-top:10px; font-size:17px; font-weight:600}
+  @page{size:A4 portrait; margin:12mm}
+  @media print{
+    html,body{background:#fff}
+    .sheet{width:auto; margin:0; padding:0; border-radius:0}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="head"><h1>Sequence Diagram — ระยะที่ 2 การตรวจแก้ การบันทึก และการออกรายงาน</h1><p>ตั้งแต่ผู้ใช้ตรวจแก้ค่า จนถึงการดาวน์โหลดรายงาน</p></div>
+  <svg viewBox="0 0 1190 848" width="100%" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1e293b"/></marker>
+    <marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>
+  </defs>
+  <line x1="200" y1="96" x2="200" y2="826" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5 5"/><line x1="468" y1="96" x2="468" y2="826" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5 5"/><line x1="752" y1="96" x2="752" y2="826" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5 5"/><line x1="1030" y1="96" x2="1030" y2="826" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5 5"/><rect x="1024.5" y="192" width="11" height="40" fill="#e2e8f0" stroke="#475569" stroke-width="1.1" rx="1.5"/><rect x="746.5" y="152" width="11" height="120" fill="#e2e8f0" stroke="#475569" stroke-width="1.1" rx="1.5"/><rect x="1024.5" y="442" width="11" height="40" fill="#e2e8f0" stroke="#475569" stroke-width="1.1" rx="1.5"/><rect x="746.5" y="352" width="11" height="170" fill="#e2e8f0" stroke="#475569" stroke-width="1.1" rx="1.5"/><rect x="1024.5" y="602" width="11" height="40" fill="#e2e8f0" stroke="#475569" stroke-width="1.1" rx="1.5"/><rect x="746.5" y="562" width="11" height="170" fill="#e2e8f0" stroke="#475569" stroke-width="1.1" rx="1.5"/><rect x="462.5" y="112" width="11" height="660" fill="#e2e8f0" stroke="#475569" stroke-width="1.1" rx="1.5"/><rect x="194.5" y="112" width="11" height="660" fill="#e2e8f0" stroke="#475569" stroke-width="1.1" rx="1.5"/><line x1="205.5" y1="112" x2="462.5" y2="112" stroke="#1e293b" stroke-width="1.5" marker-end="url(#ah)"/><text x="334.0" y="105" text-anchor="middle" class="lbl">ตรวจแก้ค่า กรอกวันเวลา และเลือกการตัดทศนิยม</text><line x1="473.5" y1="152" x2="746.5" y2="152" stroke="#1e293b" stroke-width="1.5" marker-end="url(#ah)"/><text x="610.0" y="145" text-anchor="middle" class="lbl">POST /api/meter-runs/{id}/decrease-check</text><line x1="757.5" y1="192" x2="1024.5" y2="192" stroke="#1e293b" stroke-width="1.5" marker-end="url(#ah)"/><text x="891.0" y="185" text-anchor="middle" class="lbl">อ่านการจดค่าครั้งก่อนของชุดมิเตอร์นี้</text><line x1="1024.5" y1="232" x2="757.5" y2="232" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#ahr)"/><text x="891.0" y="225" text-anchor="middle" class="lbl">ค่าที่จดไว้ครั้งก่อน</text><line x1="746.5" y1="272" x2="473.5" y2="272" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#ahr)"/><text x="610.0" y="265" text-anchor="middle" class="lbl">ฟิลด์ที่ผลต่างติดลบ (เตือน ไม่ระงับการบันทึก)</text><line x1="205.5" y1="312" x2="462.5" y2="312" stroke="#1e293b" stroke-width="1.5" marker-end="url(#ah)"/><text x="334.0" y="305" text-anchor="middle" class="lbl">สั่งบันทึกและออกรายงาน</text><line x1="473.5" y1="352" x2="746.5" y2="352" stroke="#1e293b" stroke-width="1.5" marker-end="url(#ah)"/><text x="610.0" y="345" text-anchor="middle" class="lbl">POST /api/readings</text><path d="M 757.5 392 h 34 v 22 h -34" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#ah)"/><text x="801.5" y="408" class="lbl">คำนวณค่าที่จะบันทึก และระบุฟิลด์ที่ถูกแก้ด้วยมือ</text><line x1="757.5" y1="442" x2="1024.5" y2="442" stroke="#1e293b" stroke-width="1.5" marker-end="url(#ah)"/><text x="891.0" y="435" text-anchor="middle" class="lbl">บันทึกการจดค่า</text><line x1="1024.5" y1="482" x2="757.5" y2="482" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#ahr)"/><text x="891.0" y="475" text-anchor="middle" class="lbl">ยืนยันการบันทึก</text><line x1="746.5" y1="522" x2="473.5" y2="522" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#ahr)"/><text x="610.0" y="515" text-anchor="middle" class="lbl">รหัสการจดค่าที่บันทึกแล้ว</text><line x1="473.5" y1="562" x2="746.5" y2="562" stroke="#1e293b" stroke-width="1.5" marker-end="url(#ah)"/><text x="610.0" y="555" text-anchor="middle" class="lbl">GET /api/readings/{id}/pdf</text><line x1="757.5" y1="602" x2="1024.5" y2="602" stroke="#1e293b" stroke-width="1.5" marker-end="url(#ah)"/><text x="891.0" y="595" text-anchor="middle" class="lbl">อ่านการจดค่าครั้งนี้และครั้งก่อน</text><line x1="1024.5" y1="642" x2="757.5" y2="642" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#ahr)"/><text x="891.0" y="635" text-anchor="middle" class="lbl">ข้อมูลการจดค่าทั้งสองครั้ง</text><path d="M 757.5 682 h 34 v 22 h -34" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#ah)"/><text x="801.5" y="698" class="lbl">สร้างเอกสาร PDF จากข้อมูลในฐานข้อมูล</text><line x1="746.5" y1="732" x2="473.5" y2="732" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#ahr)"/><text x="610.0" y="725" text-anchor="middle" class="lbl">ไฟล์ PDF ใบแจ้งปริมาณการใช้ก๊าซ</text><line x1="462.5" y1="772" x2="205.5" y2="772" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#ahr)"/><text x="334.0" y="765" text-anchor="middle" class="lbl">ดาวน์โหลดรายงาน และล็อกช่องไม่ให้แก้ไขอีก</text><rect x="108" y="18" width="184" height="62" rx="7" fill="#1e293b"/><text x="200" y="42" text-anchor="middle" class="actor">ผู้ใช้งาน</text><text x="200" y="62" text-anchor="middle" class="actorsub">เจ้าหน้าที่ผู้บันทึกค่า</text><rect x="376" y="18" width="184" height="62" rx="7" fill="#1e293b"/><text x="468" y="42" text-anchor="middle" class="actor">หน้าเว็บ</text><text x="468" y="62" text-anchor="middle" class="actorsub">Browser / JavaScript</text><rect x="660" y="18" width="184" height="62" rx="7" fill="#1e293b"/><text x="752" y="42" text-anchor="middle" class="actor">ส่วนประมวลผลหลัก</text><text x="752" y="62" text-anchor="middle" class="actorsub">server.py</text><rect x="938" y="18" width="184" height="62" rx="7" fill="#1e293b"/><text x="1030" y="42" text-anchor="middle" class="actor">ฐานข้อมูล</text><text x="1030" y="62" text-anchor="middle" class="actorsub">SQLite</text><g transform="translate(36,840)"><rect x="0" y="-11" width="11" height="14" fill="#e2e8f0" stroke="#475569" stroke-width="1.1" rx="1.5"/><text x="20" y="1" class="legend">ช่วงเวลาที่ส่วนนั้นกำลังทำงาน (Activation)</text><line x1="310" y1="-4" x2="356" y2="-4" stroke="#1e293b" stroke-width="1.5" marker-end="url(#ah)"/><text x="366" y="1" class="legend">การเรียกใช้งาน</text><line x1="476" y1="-4" x2="522" y2="-4" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#ahr)"/><text x="532" y="1" class="legend">การตอบกลับ</text></g>
+</svg>
+  <div class="caption">ภาพที่ 3.2 (ข) ลำดับการทำงานของการบันทึกและการออกรายงาน</div>
+</div>
+</body>
+</html>

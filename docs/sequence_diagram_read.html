@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ภาพที่ 3.2 (ก) ลำดับการทำงานของการอ่านค่าจากภาพถ่าย</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#f1f5f9}
+  body{font-family:'Sarabun',"TH Sarabun New",sans-serif; color:#0f172a;
+       -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  .sheet{width:1315px; margin:24px auto; background:#fff; padding:26px 28px 30px; border-radius:6px}
+  .head{text-align:center; margin-bottom:8px}
+  .head h1{font-size:22px; font-weight:700; margin:0 0 3px}
+  .head p{font-size:16.5px; color:#475569; margin:0}
+  text{font-family:'Sarabun',"TH Sarabun New",sans-serif}
+  .actor{fill:#fff; font-size:15.5px; font-weight:700}
+  .actorsub{fill:#cbd5e1; font-size:12.5px; font-weight:400}
+  .lbl{fill:#1e293b; font-size:14px}
+  .loop{fill:#1e293b; font-size:12.5px; font-weight:700}
+  .loopnote{fill:#475569; font-size:13px}
+  .legend{fill:#475569; font-size:13px}
+  .caption{text-align:center; margin-top:10px; font-size:17px; font-weight:600}
+  @page{size:A4 portrait; margin:12mm}
+  @media print{
+    html,body{background:#fff}
+    .sheet{width:auto; margin:0; padding:0; border-radius:0}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="head"><h1>Sequence Diagram — ระยะที่ 1 การอ่านค่าจากภาพถ่าย</h1><p>ตั้งแต่ผู้ใช้อัปโหลดภาพ จนถึงการแสดงค่าที่อ่านได้บนหน้าจอ</p></div>
+  <svg viewBox="0 0 1255 804" width="100%" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1e293b"/></marker>
+    <marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>
+  </defs>
+  <line x1="190" y1="96" x2="190" y2="782" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5 5"/><line x1="425" y1="96" x2="425" y2="782" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5 5"/><line x1="668" y1="96" x2="668" y2="782" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5 5"/><line x1="880" y1="96" x2="880" y2="782" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5 5"/><line x1="1080" y1="96" x2="1080" y2="782" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5 5"/><rect x="874.5" y="318" width="11" height="40" fill="#e2e8f0" stroke="#475569" stroke-width="1.1" rx="1.5"/><rect x="1074.5" y="508" width="11" height="40" fill="#e2e8f0" stroke="#475569" stroke-width="1.1" rx="1.5"/><rect x="662.5" y="152" width="11" height="536" fill="#e2e8f0" stroke="#475569" stroke-width="1.1" rx="1.5"/><rect x="419.5" y="112" width="11" height="616" fill="#e2e8f0" stroke="#475569" stroke-width="1.1" rx="1.5"/><rect x="184.5" y="112" width="11" height="616" fill="#e2e8f0" stroke="#475569" stroke-width="1.1" rx="1.5"/><rect x="518" y="238" width="530" height="218" fill="none" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="4 3" rx="4"/><line x1="195.5" y1="112" x2="419.5" y2="112" stroke="#1e293b" stroke-width="1.5" marker-end="url(#ah)"/><text x="307.5" y="105" text-anchor="middle" class="lbl">เลือกชุดมิเตอร์และอัปโหลดภาพถ่าย</text><line x1="430.5" y1="152" x2="662.5" y2="152" stroke="#1e293b" stroke-width="1.5" marker-end="url(#ah)"/><text x="546.5" y="145" text-anchor="middle" class="lbl">POST /api/ocr — ส่งภาพทั้งชุดในคำขอเดียว</text><path d="M 673.5 192 h 34 v 22 h -34" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#ah)"/><text x="717.5" y="208" class="lbl">ตรวจสอบชนิดไฟล์ และสร้างรหัสประจำคำขอ</text><rect x="518" y="238" width="86" height="19" fill="#cbd5e1" rx="3"/><text x="561" y="252" text-anchor="middle" class="loop">loop</text><text x="612" y="252" class="loopnote">[ ทำซ้ำสำหรับภาพทุกภาพในคำขอ ]</text><path d="M 673.5 268 h 34 v 22 h -34" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#ah)"/><text x="717.5" y="284" class="lbl">ปรับทิศทางตาม EXIF และแปลงเป็น RGB</text><line x1="673.5" y1="318" x2="874.5" y2="318" stroke="#1e293b" stroke-width="1.5" marker-end="url(#ah)"/><text x="774.0" y="311" text-anchor="middle" class="lbl">ส่งภาพเพื่อตรวจจับหน้าปัด</text><line x1="874.5" y1="358" x2="673.5" y2="358" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#ahr)"/><text x="774.0" y="351" text-anchor="middle" class="lbl">พิกัดมุมทั้งสี่ ประเภทมิเตอร์ และค่าความเชื่อมั่น</text><path d="M 673.5 398 h 34 v 22 h -34" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#ah)"/><text x="717.5" y="414" class="lbl">ปรับภาพให้ตั้งตรง ครอบตัด และปรับความคมชัด</text><path d="M 673.5 458 h 34 v 22 h -34" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#ah)"/><text x="717.5" y="474" class="lbl">ตรวจสอบความสอดคล้องของชุดภาพ</text><line x1="673.5" y1="508" x2="1074.5" y2="508" stroke="#1e293b" stroke-width="1.5" marker-end="url(#ah)"/><text x="874.0" y="501" text-anchor="middle" class="lbl">ส่งภาพที่เตรียมแล้วพร้อมคำสั่ง</text><line x1="1074.5" y1="548" x2="673.5" y2="548" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#ahr)"/><text x="874.0" y="541" text-anchor="middle" class="lbl">ค่ามิเตอร์ที่อ่านได้ในรูปสายอักขระตัวเลข</text><path d="M 673.5 588 h 34 v 22 h -34" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#ah)"/><text x="717.5" y="604" class="lbl">กรองค่าตามประเภทอุปกรณ์ และเตรียมค่าตั้งต้นของช่องทีละหลัก</text><path d="M 673.5 638 h 34 v 22 h -34" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#ah)"/><text x="717.5" y="654" class="lbl">จัดเก็บภาพต้นฉบับและผลการอ่านค่าของคำขอ</text><line x1="662.5" y1="688" x2="430.5" y2="688" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#ahr)"/><text x="546.5" y="681" text-anchor="middle" class="lbl">ผลการอ่านค่าในรูปแบบ JSON</text><line x1="419.5" y1="728" x2="195.5" y2="728" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#ahr)"/><text x="307.5" y="721" text-anchor="middle" class="lbl">แสดงค่าที่อ่านได้ในช่องตัวเลขทีละหลัก</text><rect x="98" y="18" width="184" height="62" rx="7" fill="#1e293b"/><text x="190" y="42" text-anchor="middle" class="actor">ผู้ใช้งาน</text><text x="190" y="62" text-anchor="middle" class="actorsub">เจ้าหน้าที่ผู้บันทึกค่า</text><rect x="333" y="18" width="184" height="62" rx="7" fill="#1e293b"/><text x="425" y="42" text-anchor="middle" class="actor">หน้าเว็บ</text><text x="425" y="62" text-anchor="middle" class="actorsub">Browser / JavaScript</text><rect x="576" y="18" width="184" height="62" rx="7" fill="#1e293b"/><text x="668" y="42" text-anchor="middle" class="actor">ส่วนประมวลผลหลัก</text><text x="668" y="62" text-anchor="middle" class="actorsub">server.py</text><rect x="788" y="18" width="184" height="62" rx="7" fill="#1e293b"/><text x="880" y="42" text-anchor="middle" class="actor">แบบจำลองตรวจจับ</text><text x="880" y="62" text-anchor="middle" class="actorsub">YOLO-OBB</text><rect x="988" y="18" width="184" height="62" rx="7" fill="#1e293b"/><text x="1080" y="42" text-anchor="middle" class="actor">แบบจำลองอ่านค่า</text><text x="1080" y="62" text-anchor="middle" class="actorsub">OcrEngine</text><g transform="translate(36,796)"><rect x="0" y="-11" width="11" height="14" fill="#e2e8f0" stroke="#475569" stroke-width="1.1" rx="1.5"/><text x="20" y="1" class="legend">ช่วงเวลาที่ส่วนนั้นกำลังทำงาน (Activation)</text><line x1="310" y1="-4" x2="356" y2="-4" stroke="#1e293b" stroke-width="1.5" marker-end="url(#ah)"/><text x="366" y="1" class="legend">การเรียกใช้งาน</text><line x1="476" y1="-4" x2="522" y2="-4" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#ahr)"/><text x="532" y="1" class="legend">การตอบกลับ</text></g>
+</svg>
+  <div class="caption">ภาพที่ 3.2 (ก) ลำดับการทำงานของการอ่านค่าจากภาพถ่าย</div>
+</div>
+</body>
+</html>

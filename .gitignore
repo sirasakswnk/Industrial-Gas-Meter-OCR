@@ -1,0 +1,38 @@
+# ความลับ — API key อยู่ที่นี่ ห้าม commit
+.env
+# .env รูปแบบอื่น (.env.local, .env.prod ...) — ยกเว้นไฟล์ตัวอย่างที่ไม่มีค่าจริง
+.env.*
+!.env.example
+# ไฟล์กุญแจ / credential ของบริการต่างๆ (Google service account, OAuth client, ใบรับรอง)
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+credentials*.json
+service-account*.json
+service_account*.json
+client_secret*.json
+secrets.*
+secrets/
+*.secret
+# ค่าตั้งส่วนตัวของ Claude Code บนเครื่องนี้ (สิทธิ์คำสั่ง/path ของเครื่อง) — ไม่ใช่ของโปรเจค
+.claude/settings.local.json
+
+# ข้อมูลที่ระบบสร้างขึ้นระหว่างใช้งาน (โตเรื่อยๆ / มีข้อมูลจริงของโรงงาน)
+debug_images/
+ocr_requests/
+meter_records.db
+
+# Python
+__pycache__/
+*.pyc
+
+# โมเดล: ignore ทุกไฟล์ .pt ยกเว้นโมเดลหลักของระบบ (~20MB ต่ำกว่าลิมิต 100MB ของ GitHub)
+# best.pt (HBB เดิม) ไม่ได้ใช้แล้ว ปล่อย ignore
+*.pt
+!best_obb.pt
+
+# ผลการเทรน/ทดลอง (ไฟล์ใหญ่ สร้างใหม่ได้ — ขั้นตอนเทรนอยู่ใน guide_train_obb.md)
+runs/
+experiment_output.zip

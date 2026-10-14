@@ -1,0 +1,15 @@
+﻿filename,group,canny,otsu,otsu_inv,bright,obb,classical_any_correct
+analog_1.jpg,analog,none,wrong,correct,wrong,correct,True
+analog_2.jpg,analog,wrong,none,wrong,none,correct,False
+analog_3.jpg,analog,wrong,wrong,wrong,none,partial,False
+hard_1.jpeg,hard,wrong,wrong,wrong,none,correct,False
+hard_2.jpeg,hard,wrong,wrong,none,none,correct,False
+hard_3.jpeg,hard,wrong,none,wrong,wrong,correct,False
+hard_4.jpeg,hard,none,none,none,none,correct,False
+hard_5.jpeg,hard,wrong,wrong,none,wrong,correct,False
+normal_1.jpeg,normal,correct,wrong,correct,wrong,correct,True
+normal_2.jpg,normal,none,wrong,wrong,none,correct,False
+normal_3.png,normal,none,wrong,wrong,none,correct,False
+tilt_1.jpg,tilt,none,wrong,wrong,none,correct,False
+tilt_2.jpeg,tilt,wrong,none,none,wrong,partial,False
+tilt_3.jpeg,tilt,none,wrong,none,wrong,correct,False

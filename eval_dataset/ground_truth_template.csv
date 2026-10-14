@@ -1,0 +1,12 @@
+case_id,images,meter_type,correct_v_scm,line_v_m3,pressure_bar,temperature_c,correction_factor,turbine_v_m3,qm_m3_h,qb_sm3_h,pulse_weight
+case01,photo1.jpg,digital,54791344.24,13221963,12.006,24.73,11.70643,,,,
+case02,photo2.jpg,digital,23282.5509,,,,11.69531,,1556,18197.9,
+case03,photo6.jpg,digital,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,case03_page1.jpg;case03_page2.jpg,,,,,,,,

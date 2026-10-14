@@ -1,0 +1,147 @@
+<!doctype html><html lang="th"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>สไลด์ 14 — ผลการประเมินแบบจำลอง YOLO-OBB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0E2A47; --steel:#2F6690; --pipe:#9CB8CF;
+    --paper:#F4F7FA; --ink:#1B2733; --muted:#5B6B7A;
+    --digital:#2F6690; --analog:#D0842B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#D9E0E6;font-family:"IBM Plex Sans Thai","Sarabun","Noto Sans Thai",sans-serif;color:var(--ink)}
+  .stage{height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .slide{
+    width:1280px;height:720px;flex:none;background:var(--paper);position:relative;
+    transform-origin:center;box-shadow:0 8px 30px rgba(14,42,71,.18);
+    display:grid;grid-template-rows:auto auto 1fr auto auto auto;padding:48px 72px 28px;
+  }
+  .slide::before{content:"";position:absolute;inset:0 0 auto 0;height:8px;background:var(--steel)}
+  h1{font-size:38px;font-weight:700;color:var(--navy);line-height:1.2}
+  .sub{font-size:17px;color:var(--muted);margin-top:2px}
+
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:16px}
+  .card{background:#fff;border:1px solid #DCE5EC;border-top:5px solid var(--steel);border-radius:4px 4px 10px 10px;padding:10px 16px}
+  .card small{font-size:14px;font-weight:600;color:var(--steel)}
+  .card b{display:block;font-size:40px;font-weight:700;color:var(--navy);line-height:1.1;font-variant-numeric:tabular-nums}
+  .card p{font-size:13.5px;color:var(--muted);line-height:1.35}
+
+  .lower{display:grid;grid-template-columns:1.05fr 1.2fr .95fr;gap:16px;margin-top:14px;min-height:0}
+  .panel{background:#fff;border:1px solid #DCE5EC;border-radius:10px;padding:12px 16px;display:flex;flex-direction:column;min-height:0}
+  .label{font-size:15px;font-weight:700;color:var(--steel);margin-bottom:6px}
+
+  table{width:100%;border-collapse:collapse;font-size:15px;font-variant-numeric:tabular-nums}
+  th{font-size:12.5px;font-weight:600;color:var(--muted);padding:3px 6px;border-bottom:2px solid #DCE5EC;text-align:center}
+  th:first-child{text-align:left}
+  td{padding:5px 6px;text-align:center;border-bottom:1px solid #EEF2F5}
+  td:first-child{text-align:left;font-weight:600;color:var(--navy)}
+  td.test{background:#E6EFF7;font-weight:700;color:var(--navy)}
+  td.diff{color:var(--muted);font-size:14px}
+  .concl{margin-top:auto;padding-top:8px;font-size:14px;line-height:1.45;border-left:4px solid var(--steel);padding-left:10px}
+
+  .chart svg{width:100%;height:auto;display:block}
+  .chart .g{stroke:#E4EBF0;stroke-width:1}
+  .chart .ax{font-size:11px;fill:var(--muted);font-family:"IBM Plex Sans Thai",sans-serif}
+  .chart .l50{fill:none;stroke:#A9C0D3;stroke-width:2}
+  .chart .l95{fill:none;stroke:var(--steel);stroke-width:2.5}
+  .chart .best{stroke:#B4532A;stroke-width:1.5;stroke-dasharray:4 3}
+  .chart .dot{fill:#B4532A}
+  .chart .bt{font-size:12px;font-weight:600;fill:#B4532A;font-family:"IBM Plex Sans Thai",sans-serif}
+  .legend{display:flex;gap:14px;font-size:12.5px;color:var(--muted);margin-top:2px}
+  .legend i{display:inline-block;width:16px;height:3px;border-radius:2px;vertical-align:4px;margin-right:5px}
+
+  .cm{display:grid;grid-template-columns:auto repeat(2,1fr);gap:4px;align-items:stretch;margin-top:4px}
+  .cm .h{font-size:12px;color:var(--muted);text-align:center;align-self:end;padding-bottom:2px}
+  .cm .rh{font-size:12px;color:var(--muted);text-align:right;align-self:center;padding-right:4px;line-height:1.2}
+  .cm .c{border-radius:6px;height:62px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+  .cm .a{background:var(--analog);color:#fff}
+  .cm .d{background:var(--digital);color:#fff}
+  .cm .z{background:#F1F4F7;color:#B5BFC8;font-size:18px}
+  .cm-note{font-size:13px;color:var(--ink);margin-top:8px;line-height:1.4}
+  .axis{font-size:11.5px;color:var(--muted);text-align:center;margin-top:2px}
+
+  .note{margin-top:8px;font-size:12.5px;color:var(--muted)}
+  .band{
+    margin-top:8px;background:var(--navy);color:#fff;border-radius:8px;
+    display:flex;align-items:center;gap:14px;padding:11px 22px;font-size:19px;font-weight:600
+  }
+  .band svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+  footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:14px;color:var(--muted)}
+  footer .pg{font-weight:600;color:var(--steel);font-size:16px}
+html,body{width:1280px;height:720px;background:#F4F7FA}.stage{display:block;width:1280px;height:720px}.slide{transform:none!important;box-shadow:none}.card b{line-height:1.45}.card p{margin-top:2px}.concl{border-left:none;padding-left:0}.legend span{display:flex;align-items:center;gap:5px}.legend i{flex:none;margin-right:0}</style>
+
+</head><body><div class="stage">
+  <section data-document-role="page" data-label="ผลการประเมินแบบจำลอง YOLO-OBB" class="slide" id="slide" aria-label="สไลด์ 14 ผลการประเมินแบบจำลอง YOLO-OBB">
+    <header>
+      <h1>ผลการประเมินแบบจำลอง YOLO-OBB</h1>
+      <p class="sub">ชุดทดสอบ 65 ภาพ ที่ไม่ได้ใช้ระหว่างการเทรน</p>
+    </header>
+
+    <div class="cards">
+      <div class="card"><small>mAP50</small><b>0.995</b><p>หาหน้าปัดเจอและตำแหน่งถูก (IoU ≥ 0.5)</p></div>
+      <div class="card"><small>mAP50-95</small><b>0.956</b><p>ตำแหน่งกรอบแม่นแม้ใช้เกณฑ์เข้มขึ้น</p></div>
+      <div class="card"><small>Precision</small><b>0.994</b><p>กรอบที่ทำนายเป็นหน้าปัดจริงเกือบทั้งหมด</p></div>
+      <div class="card"><small>Recall</small><b>0.999</b><p>หน้าปัดในภาพถูกหาเจอเกือบทั้งหมด</p></div>
+    </div>
+
+    <div class="lower">
+      <div class="panel">
+        <div class="label">เทียบชุด validation กับชุดทดสอบ</div>
+        <table>
+          <thead><tr><th>ตัวชี้วัด</th><th>val (129)</th><th>test (65)</th><th>ต่าง</th></tr></thead>
+          <tbody>
+            <tr><td>Precision</td><td>0.999</td><td class="test">0.994</td><td class="diff">−0.005</td></tr>
+            <tr><td>Recall</td><td>1.000</td><td class="test">0.999</td><td class="diff">−0.001</td></tr>
+            <tr><td>mAP50</td><td>0.995</td><td class="test">0.995</td><td class="diff">0.000</td></tr>
+            <tr><td>mAP50-95</td><td>0.967</td><td class="test">0.956</td><td class="diff">−0.011</td></tr>
+          </tbody>
+        </table>
+        <p class="concl">ผลบนชุดทดสอบใกล้เคียงชุด validation <b>ไม่มีสัญญาณ overfit</b></p>
+      </div>
+
+      <div class="panel chart">
+        <div class="label">mAP บนชุด validation ระหว่างการเทรน</div>
+        <svg viewBox="0 0 400 200" role="img" aria-label="กราฟ mAP บนชุด validation ตาม epoch; mAP50-95 เพิ่มจาก 0.705 ถึงสูงสุด 0.967 ที่ epoch 84">
+<line x1="40" x2="388" y1="149.1" y2="149.1" class="g"/><text x="34" y="153.1" text-anchor="end" class="ax">0.7</text><line x1="40" x2="388" y1="103.4" y2="103.4" class="g"/><text x="34" y="107.4" text-anchor="end" class="ax">0.8</text><line x1="40" x2="388" y1="57.7" y2="57.7" class="g"/><text x="34" y="61.7" text-anchor="end" class="ax">0.9</text><line x1="40" x2="388" y1="12.0" y2="12.0" class="g"/><text x="34" y="16.0" text-anchor="end" class="ax">1.0</text><text x="40.0" y="190" text-anchor="middle" class="ax">1</text><text x="124.4" y="190" text-anchor="middle" class="ax">25</text><text x="212.2" y="190" text-anchor="middle" class="ax">50</text><text x="300.1" y="190" text-anchor="middle" class="ax">75</text><text x="388.0" y="190" text-anchor="middle" class="ax">100</text>
+<path d="M40.0 65.0 L43.5 20.7 L47.0 23.9 L50.5 21.4 L54.1 14.4 L57.6 14.3 L61.1 15.0 L64.6 14.3 L68.1 20.2 L71.6 14.3 L75.2 14.3 L78.7 17.1 L82.2 15.2 L85.7 20.5 L89.2 14.3 L92.7 19.7 L96.2 14.5 L99.8 14.3 L103.3 15.2 L106.8 14.8 L110.3 14.8 L113.8 14.3 L117.3 14.3 L120.8 14.3 L124.4 14.5 L127.9 14.3 L131.4 14.3 L134.9 14.3 L138.4 14.3 L141.9 14.3 L145.5 14.3 L149.0 14.3 L152.5 14.4 L156.0 14.3 L159.5 14.3 L163.0 14.3 L166.5 14.3 L170.1 14.3 L173.6 14.3 L177.1 14.3 L180.6 14.3 L184.1 14.3 L187.6 14.3 L191.2 14.3 L194.7 14.3 L198.2 14.3 L201.7 14.3 L205.2 14.3 L208.7 14.3 L212.2 14.3 L215.8 14.3 L219.3 14.3 L222.8 14.3 L226.3 14.3 L229.8 14.3 L233.3 14.3 L236.8 14.3 L240.4 14.3 L243.9 14.3 L247.4 14.3 L250.9 14.3 L254.4 14.3 L257.9 14.3 L261.5 14.3 L265.0 14.3 L268.5 14.3 L272.0 14.3 L275.5 14.3 L279.0 14.3 L282.5 14.3 L286.1 14.3 L289.6 14.3 L293.1 14.3 L296.6 14.3 L300.1 14.3 L303.6 14.3 L307.2 14.3 L310.7 14.3 L314.2 14.3 L317.7 14.3 L321.2 14.3 L324.7 14.3 L328.2 14.3 L331.8 14.3 L335.3 14.3 L338.8 14.3 L342.3 14.3 L345.8 14.3 L349.3 14.3 L352.8 14.3 L356.4 14.3 L359.9 14.4 L363.4 14.3 L366.9 14.3 L370.4 14.3 L373.9 14.3 L377.5 14.3 L381.0 14.3 L384.5 14.3 L388.0 14.3" class="l50"/>
+<path d="M40.0 146.7 L43.5 136.8 L47.0 89.6 L50.5 84.8 L54.1 76.6 L57.6 77.8 L61.1 74.4 L64.6 64.6 L68.1 79.6 L71.6 73.5 L75.2 52.0 L78.7 64.1 L82.2 64.1 L85.7 83.6 L89.2 49.5 L92.7 66.5 L96.2 61.6 L99.8 58.7 L103.3 57.3 L106.8 52.2 L110.3 60.4 L113.8 43.0 L117.3 46.0 L120.8 45.3 L124.4 50.3 L127.9 66.5 L131.4 44.1 L134.9 50.8 L138.4 49.9 L141.9 47.1 L145.5 44.9 L149.0 47.9 L152.5 41.6 L156.0 42.7 L159.5 48.5 L163.0 47.2 L166.5 47.0 L170.1 47.2 L173.6 47.0 L177.1 45.0 L180.6 42.8 L184.1 43.1 L187.6 45.9 L191.2 41.7 L194.7 34.6 L198.2 43.3 L201.7 36.8 L205.2 38.7 L208.7 38.7 L212.2 34.9 L215.8 39.0 L219.3 35.5 L222.8 40.0 L226.3 40.3 L229.8 39.9 L233.3 34.8 L236.8 38.1 L240.4 34.8 L243.9 40.6 L247.4 39.8 L250.9 36.4 L254.4 35.4 L257.9 35.0 L261.5 39.8 L265.0 34.7 L268.5 37.3 L272.0 38.8 L275.5 37.1 L279.0 37.5 L282.5 33.7 L286.1 35.7 L289.6 35.9 L293.1 37.0 L296.6 32.8 L300.1 33.9 L303.6 36.4 L307.2 39.4 L310.7 35.0 L314.2 35.2 L317.7 34.8 L321.2 36.0 L324.7 34.1 L328.2 36.0 L331.8 27.1 L335.3 31.6 L338.8 34.2 L342.3 34.0 L345.8 35.5 L349.3 38.0 L352.8 31.5 L356.4 34.5 L359.9 35.2 L363.4 30.5 L366.9 36.3 L370.4 35.5 L373.9 33.9 L377.5 32.8 L381.0 33.8 L384.5 32.3 L388.0 31.9" class="l95"/>
+<line x1="331.8" x2="331.8" y1="12" y2="172" class="best"/>
+<circle cx="331.8" cy="27.1" r="5" class="dot"/>
+<text x="325.8" y="160" text-anchor="end" class="bt">epoch 84 (โมเดลที่ใช้)</text>
+</svg>
+        <div class="legend">
+          <span><i style="background:var(--steel)"></i>mAP50-95</span>
+          <span><i style="background:#A9C0D3"></i>mAP50</span>
+          <span>แกนนอน: epoch (เทรนครบ 100)</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="label">Confusion matrix (ชุดทดสอบ)</div>
+        <div class="cm" role="img" aria-label="analog_dial ทำนายถูก 22, digital_screen ทำนายถูก 43, ไม่มีการสลับคลาส">
+          <span></span><span class="h">จริง: analog</span><span class="h">จริง: digital</span>
+          <span class="rh">ทำนาย<br>analog</span><span class="c a">22</span><span class="c z">0</span>
+          <span class="rh">ทำนาย<br>digital</span><span class="c z">0</span><span class="c d">43</span>
+        </div>
+        <p class="cm-note"><b>ไม่สลับคลาส</b> ไม่พลาดหน้าปัด และไม่ตรวจจับผิดจากพื้นหลัง</p>
+      </div>
+    </div>
+
+    <p class="note">หมายเหตุ: ตัวชี้วัดนี้วัดการตรวจจับหน้าปัด ยังไม่ใช่ความแม่นยำของการอ่านค่า · โมเดลที่ใช้คือ epoch 84 · 1 ภาพมี 1 หน้าปัด</p>
+
+    <div class="band">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg>
+      <span>ตรวจจับหน้าปัดได้แม่นยำและสม่ำเสมอบนภาพที่ไม่ได้ใช้เทรน</span>
+    </div>
+
+    <footer>
+      <span>ระบบอ่านค่ามิเตอร์ก๊าซอัตโนมัติด้วยปัญญาประดิษฐ์</span>
+      <span class="pg">14</span>
+    </footer>
+  </section>
+</div>
+
+
+</body></html>

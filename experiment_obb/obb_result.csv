@@ -1,0 +1,15 @@
+﻿filename,group,found,class_name,conf,box_area_pct,inference_ms
+analog_1.jpg,analog,True,analog_dial,0.9253,14.72,170.9
+analog_2.jpg,analog,True,analog_dial,0.9434,12.79,73.0
+analog_3.jpg,analog,True,analog_dial,0.9322,17.25,54.8
+hard_1.jpeg,hard,True,digital_screen,0.9699,9.81,115.4
+hard_2.jpeg,hard,True,digital_screen,0.9684,12.19,135.6
+hard_3.jpeg,hard,True,digital_screen,0.9711,22.38,95.1
+hard_4.jpeg,hard,True,digital_screen,0.9657,5.61,176.1
+hard_5.jpeg,hard,True,digital_screen,0.9695,3.91,176.7
+normal_1.jpeg,normal,True,digital_screen,0.9694,17.0,88.3
+normal_2.jpg,normal,True,digital_screen,0.9749,13.54,19.5
+normal_3.png,normal,True,digital_screen,0.9705,27.89,18.4
+tilt_1.jpg,tilt,True,digital_screen,0.8788,18.71,19.1
+tilt_2.jpeg,tilt,True,digital_screen,0.9433,3.92,183.7
+tilt_3.jpeg,tilt,True,digital_screen,0.7124,5.48,126.1

@@ -1,0 +1,180 @@
+<!doctype html><html lang="th"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>สไลด์ 13 — กติกาการ label และการตั้งค่าการเทรน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0E2A47; --steel:#2F6690; --pipe:#9CB8CF;
+    --paper:#F4F7FA; --ink:#1B2733; --muted:#5B6B7A;
+    --digital:#2F6690; --warn:#B4532A; --warn-bg:#FBEDE6; --ok-bg:#EAF2F8; --off:#8A96A3;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#D9E0E6;font-family:"IBM Plex Sans Thai","Sarabun","Noto Sans Thai",sans-serif;color:var(--ink)}
+  .stage{height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .slide{
+    width:1280px;height:720px;flex:none;background:var(--paper);position:relative;
+    transform-origin:center;box-shadow:0 8px 30px rgba(14,42,71,.18);
+    display:grid;grid-template-rows:auto 1fr auto auto;padding:52px 72px 32px;
+  }
+  .slide::before{content:"";position:absolute;inset:0 0 auto 0;height:8px;background:var(--steel)}
+  h1{font-size:38px;font-weight:700;color:var(--navy);line-height:1.2}
+
+  .body{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:20px;min-height:0}
+  .panel{background:#fff;border:1px solid #DCE5EC;border-radius:10px;padding:16px 20px;display:flex;flex-direction:column;min-height:0}
+  .label{font-size:18px;font-weight:700;color:var(--steel)}
+  .mono{font-family:"IBM Plex Mono",monospace}
+
+  /* ซ้าย: เรื่องเล่า */
+  .story{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .story div{border-radius:8px;padding:8px 12px;font-size:15px;line-height:1.45}
+  .story b{display:block;font-size:13px;margin-bottom:1px}
+  .prob{background:var(--warn-bg)} .prob b{color:var(--warn)}
+  .cause{background:#F1F4F7} .cause b{color:var(--muted)}
+
+  .rule{display:grid;grid-template-columns:220px 1fr;gap:14px;align-items:center;margin-top:12px;flex:1;min-height:0}
+  .rule svg{width:100%;height:auto;display:block}
+  .rule h3{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px}
+  .rules{list-style:none;counter-reset:r}
+  .rules li{counter-increment:r;position:relative;padding-left:32px;font-size:17px;line-height:1.4;margin-bottom:9px}
+  .rules li::before{
+    content:counter(r);position:absolute;left:0;top:1px;width:22px;height:22px;border-radius:50%;
+    background:var(--steel);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center
+  }
+  .rules b{color:var(--navy)}
+  .plus{
+    margin-top:6px;border-top:1px solid #E4EBF0;padding-top:10px;font-size:16px;line-height:1.45
+  }
+  .plus b{color:var(--navy)}
+
+  /* ขวา: การเทรน */
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+  .tile{background:#F4F7FA;border-radius:8px;padding:7px 10px}
+  .tile small{display:block;font-size:12px;color:var(--muted)}
+  .tile b{font-size:17px;color:var(--navy);font-weight:700}
+  .tile.hi{background:var(--steel)}
+  .tile.hi small{color:#CFE0EC}
+  .tile.hi b{color:#fff;font-size:22px}
+  .tile.hi i{font-style:normal;font-size:12px;color:#CFE0EC;margin-left:4px}
+  .why{margin-top:8px;font-size:15px;line-height:1.45;color:var(--ink);border-left:4px solid var(--steel);padding-left:10px}
+
+  .aug{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .aug > div{border-radius:8px;padding:12px 14px}
+  .aug h4{font-size:15px;font-weight:700;margin-bottom:6px}
+  .aug ul{list-style:none}
+  .aug li{font-size:15px;line-height:1.4;margin-bottom:7px}
+  .aug li code{font-family:"IBM Plex Mono",monospace;font-size:14px}
+  .aug li span{color:var(--muted)}
+  .aug p{font-size:14.5px;line-height:1.4;margin-top:6px;padding-top:6px;border-top:1px solid rgba(0,0,0,.08)}
+  .off{background:#F1F3F5} .off h4{color:#5E6873} .off code{color:#5E6873}
+  .on{background:var(--ok-bg)} .on h4{color:var(--steel)} .on code{color:var(--steel)}
+
+  .band{
+    margin-top:16px;background:var(--navy);color:#fff;border-radius:8px;
+    display:flex;align-items:center;gap:16px;padding:13px 24px;font-size:20px;font-weight:600
+  }
+  .band svg{width:28px;height:28px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+  footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:14px;color:var(--muted)}
+  footer .pg{font-weight:600;color:var(--steel);font-size:16px}
+html,body{width:1280px;height:720px;background:#F4F7FA}.stage{display:block;width:1280px;height:720px}.slide{transform:none!important;box-shadow:none}.rule-item{font-size:17px;line-height:1.45;margin-bottom:10px;color:#1B2733}.rule-item b{color:#0E2A47}.aug-line{font-size:14px;line-height:1.65;margin-bottom:6px;color:#1B2733}.aug p{margin-top:8px;padding-top:8px;font-size:14px}.tile.hi b{display:block;font-size:22px}.tile.hi i{display:block;margin-left:0;font-size:12px}</style>
+
+</head><body><div class="stage">
+  <section data-document-role="page" data-label="กติกาการ label และการตั้งค่าการเทรน" class="slide" id="slide" aria-label="สไลด์ 13 กติกาการ label และการตั้งค่าการเทรน">
+    <header><h1>กติกาการ label และการตั้งค่าการเทรน</h1></header>
+
+    <div class="body">
+      
+      <div class="panel">
+        <div class="label">กติกาการ label</div>
+        <div class="story">
+          <div class="prob"><b>ปัญหาในการเทรนรอบแรก</b>ภาพเอียง 90° ได้ผลกลับหัวตลอด</div>
+          <div class="cause"><b>ต้นเหตุ</b>คลิกเกิน 4 จุด ลำดับมุมหายตอนแปลงเป็น OBB</div>
+        </div>
+
+        <div class="rule">
+          <svg viewBox="0 0 230 180" role="img" aria-label="หน้าจอเอียง มีเลขมุม 1 ถึง 4 เริ่มบนซ้ายของตัวเลข วนตามเข็มนาฬิกา">
+            <defs>
+              <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M0 0 L10 5 L0 10 z" fill="#2F6690"/>
+              </marker>
+            </defs>
+            <g transform="rotate(-24 115 95)">
+              <rect x="40" y="55" width="150" height="80" rx="6" fill="#EAF2F8" stroke="#2F6690" stroke-width="2.5"/>
+              <rect x="56" y="75" width="118" height="40" rx="3" fill="#0E2A47"/>
+              <text x="115" y="104" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="24" fill="#9FE3C1">12345</text>
+              <path d="M62 40 H168" fill="none" stroke="#2F6690" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+              <path d="M205 70 V122" fill="none" stroke="#2F6690" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+              <path d="M168 150 H62" fill="none" stroke="#2F6690" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+              <g font-family="IBM Plex Sans Thai, sans-serif" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">
+                <circle cx="40" cy="55" r="13" fill="#B4532A"/><text x="40" y="60" transform="rotate(24 40 55)">1</text>
+                <circle cx="190" cy="55" r="13" fill="#2F6690"/><text x="190" y="60" transform="rotate(24 190 55)">2</text>
+                <circle cx="190" cy="135" r="13" fill="#2F6690"/><text x="190" y="140" transform="rotate(24 190 135)">3</text>
+                <circle cx="40" cy="135" r="13" fill="#2F6690"/><text x="40" y="140" transform="rotate(24 40 135)">4</text>
+              </g>
+            </g>
+          </svg>
+          <div>
+            <h3>กติกาที่กำหนดใหม่</h3>
+            <div class="rules">
+              <div class="rule-item">1. คลิก <b>4 จุดพอดี</b></div>
+              <div class="rule-item">2. เริ่มที่ <b>มุมบนซ้ายของหน้าจอ</b> ไล่<b>ตามเข็มนาฬิกา</b></div>
+              <div class="rule-item">3. ยึด<b>ทิศที่อ่านตัวเลขได้</b> ไม่ยึดทิศของภาพ</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="plus"><b>และเติมข้อมูล:</b> เพิ่มภาพเอียงมากให้มีสัดส่วนพอสมควร (รอบแรกมีภาพ 90° น้อยมาก)</div>
+      </div>
+
+      
+      <div class="panel">
+        <div class="label">การตั้งค่าการเทรน</div>
+        <div class="tiles">
+          <div class="tile"><small>โมเดลตั้งต้น</small><b class="mono" style="font-size:14px">yolo11s-obb</b></div>
+          <div class="tile hi"><small>ขนาดภาพ (imgsz)</small><b>1024</b><i> มาตรฐาน 640</i></div>
+          <div class="tile"><small>Epochs / Patience</small><b>100 / 25</b></div>
+          <div class="tile"><small>Batch</small><b>8</b></div>
+          <div class="tile"><small>lr0 / lrf</small><b>0.01 / 0.01</b></div>
+          <div class="tile"><small>GPU</small><b style="font-size:15px">RTX 4060 8GB</b></div>
+        </div>
+        <p class="why"><b>ทำไม 1024:</b> มุมคลาดเล็กน้อยทำให้ภาพที่ดัดบิดเบี้ยว ภาพใหญ่ขึ้นช่วยให้ตำแหน่งมุมแม่นขึ้น</p>
+
+        <div class="aug">
+          <div class="off">
+            <h4>✗ ปิด augmentation</h4>
+            <div class="aug-lines">
+              <div class="aug-line">degrees = 0 หมุนภาพ</div>
+              <div class="aug-line">flipud = 0 กลับบนล่าง</div>
+              <div class="aug-line">fliplr = 0 กลับซ้ายขวา</div>
+            </div>
+            <p>ป้องกันลำดับมุมไม่ตรงกับกติกา label</p>
+          </div>
+          <div class="on">
+            <h4>✓ เปิด augmentation</h4>
+            <div class="aug-lines">
+              <div class="aug-line">hsv สีและความสว่าง</div>
+              <div class="aug-line">translate = 0.1 เลื่อนภาพ</div>
+              <div class="aug-line">scale = 0.5 ย่อขยาย</div>
+            </div>
+            <p>ไม่เปลี่ยนทิศหน้าปัด ช่วยให้ทนต่อแสงและระยะถ่าย</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="band">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.8"/></svg>
+      <span>ทุกการตั้งค่ามุ่งให้ตำแหน่งมุมแม่นยำ เพราะนำไปดัดภาพต่อ</span>
+    </div>
+
+    <footer>
+      <span>ระบบอ่านค่ามิเตอร์ก๊าซอัตโนมัติด้วยปัญญาประดิษฐ์</span>
+      <span class="pg">13</span>
+    </footer>
+  </section>
+</div>
+
+
+</body></html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Industrial Gas Meter Reading with AI </title>
+    <meta name="description"
+        content="Local industrial gas meter OCR portal powered by AI vision models, for PTT natural gas separation plant.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/index.css?v=15">
+</head>
+
+<body>
+    <div class="app-shell">
+
+        <header class="app-header">
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fa-solid fa-gauge-high"></i></div>
+                <div class="logo-text">
+                    <h1>Automated Industrial Gas Meter Reading with AI</h1>
+                    <span>Meter Industrial Reader Portal</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="system-status">
+                    <span class="status-dot"></span>
+                    <span>Server Running</span>
+                </div>
+                <button id="themeToggle" class="theme-toggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Meter Run ที่เลือกจากหน้าแรก (index.js เติมค่า) -->
+        <div class="run-bar">
+            <div class="run-bar-main">
+                <span class="run-bar-label">Meter Run</span>
+                <span id="runBarTitle" class="run-bar-title">กำลังโหลด…</span>
+            </div>
+            <div class="run-bar-tags">
+                <span><span class="run-bar-label">FY</span> <span id="runBarFy">—</span></span>
+                <span><span class="run-bar-label">FE</span> <span id="runBarFe">—</span></span>
+            </div>
+            <div class="run-bar-actions">
+                <a id="runHistoryLink" href="/history" class="btn btn-outline btn-sm">
+                    <i class="fa-solid fa-clock-rotate-left"></i> ประวัติ
+                </a>
+                <a href="/" class="btn btn-outline btn-sm">
+                    <i class="fa-solid fa-arrow-left"></i> เปลี่ยน Meter Run
+                </a>
+            </div>
+        </div>
+
+        <main class="app-main">
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-header-row">
+                        <div class="card-header-icon"><i class="fa-solid fa-file-arrow-up"></i></div>
+                        <div>
+                            <div class="card-title">Upload Meter Images</div>
+                        </div>
+                    </div>
+                    <div class="card-subtitle" style="margin-top:0.35rem">Select or drag &amp; drop one or multiple gas
+                        meter images to analyze</div>
+                </div>
+
+                <div class="card-body">
+                    <div id="dropzone" class="dropzone">
+                        <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
+                        <div class="dropzone-inner">
+                            <div class="dropzone-ico"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                            <h3>Drag &amp; drop images here</h3>
+                            <p>or <span id="browseLink">browse files</span></p>
+                            <span class="dropzone-hint">JPG, JPEG, PNG supported (Upload multiple pages at once)</span>
+                        </div>
+
+                        <div id="previewContainer" class="preview-overlay hidden"
+                            style="flex-direction: column; overflow-y: auto; padding: 1.25rem;">
+                            <div id="imagePreviewGrid" class="samples-grid"
+                                style="width: 100%; justify-content: center; gap: 8px;">
+                            </div>
+                            <button id="removeImageBtn" class="btn btn-outline btn-sm"
+                                style="margin-top: 12px; background: white; color: #dc2626; border-color: #fca5a5;">
+                                <i class="fa-solid fa-trash-can"></i> Remove All
+                            </button>
+                        </div>
+                    </div>
+
+                    <button id="processBtn" class="btn btn-primary btn-full" disabled>
+                        <i class="fa-solid fa-microchip"></i> Analyze Meter Images
+                    </button>
+
+                    <div>
+                        <div class="section-label"><i class="fa-regular fa-images"></i> Workspace Samples</div>
+                        <div class="samples-grid" style="margin-top:0.75rem">
+                            <!-- <button class="chip" data-file="ItronPage3.jpeg"><i class="fa-regular fa-image"></i>
+                                ItronPage3.jpeg</button>
+                            <button class="chip" data-file="testpic.png"><i class="fa-regular fa-image"></i>
+                                testpic.png</button>
+                            <button class="chip" data-file="test2.jpg"><i class="fa-regular fa-image"></i>
+                                test2.jpg</button>
+                            <button class="chip" data-file="test3.jpg"><i class="fa-regular fa-image"></i>
+                                test3.jpg</button>
+                            <button class="chip" data-file="test4.jpeg"><i class="fa-regular fa-image"></i>
+                                test4.jpeg</button>
+                            <button class="chip" data-file="test5.jpg"><i class="fa-regular fa-image"></i>
+                                test5.jpg</button>
+                            <button class="chip" data-file="test6.jpg"><i class="fa-regular fa-image"></i>
+                                test6.jpg</button>
+                            <button class="chip" data-file="test7.jpg"><i class="fa-regular fa-image"></i>
+                                test7.jpg</button> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="height:100%">
+                <div class="tabs-bar">
+                    <button class="tab-btn active" data-tab="table-view">
+                        <i class="fa-solid fa-table-list"></i> Extracted Parameters
+                    </button>
+                    <button class="tab-btn" data-tab="json-view">
+                        <i class="fa-solid fa-code"></i> Raw JSON
+                    </button>
+                </div>
+
+                <div id="resultsPlaceholder" class="state-view">
+                    <div class="state-ico"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                    <h3>Awaiting Analysis</h3>
+                    <p>Upload gas meter images and click "Analyze Meter Images" to begin multi-page extraction.</p>
+                </div>
+
+                <div id="resultsLoading" class="state-view hidden">
+                    <div class="loader-ring"></div>
+                    <h3>Analyzing Images…</h3>
+                    <p id="loadingText">กำลังตรวจจับจอมิเตอร์และอ่านค่าด้วยโมเดล กรุณารอสักครู่</p>
+                    <div class="progress-track">
+                        <div class="progress-fill"></div>
+                    </div>
+                </div>
+
+                <div id="resultsError" class="state-view hidden">
+                    <div class="state-ico danger"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <h3>Analysis Failed</h3>
+                    <p id="errorText">An error occurred while communicating with the API.</p>
+                    <button id="retryBtn" class="btn btn-outline" style="margin-top:0.5rem">
+                        <i class="fa-solid fa-rotate-right"></i> Try Again
+                    </button>
+                </div>
+
+                <div id="resultsTableContainer" class="tab-content hidden">
+                    <div class="result-content">
+                        <div class="meta-row">
+                            <div class="meta-card">
+                                <span class="meta-label">Meter Type</span>
+                                <span id="valMeterType" class="meta-value">—</span>
+                            </div>
+                            <div class="meta-card">
+                                <span class="meta-label">Detected Format</span>
+                                <span id="valDetectedFormat" class="meta-value sm">—</span>
+                            </div>
+                        </div>
+
+                        <!-- วัน/เวลาที่จด + ข้อมูลครั้งก่อน -->
+                        <div class="reading-meta">
+                            <label class="form-field">
+                                <span>วัน/เวลาที่จด</span>
+                                <input type="datetime-local" id="recordedAt">
+                            </label>
+                            <div id="prevReadingInfo" class="prev-info">—</div>
+                        </div>
+                        <div id="recordedAtWarning" class="field-note warn hidden"></div>
+
+                        <!-- ตาข่าย analog ทิ้งค่า EVC (คำขอนี้มีแต่ภาพ analog) -->
+                        <div id="guardWarning" class="warning-banner hidden" role="alert">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <span>ตรวจพบเฉพาะมิเตอร์ analog ในคำขอนี้ ค่าของ EVC จึงถูกตัดออก
+                                หากต้องการค่า EVC กรุณาอัปโหลดภาพหน้าจอ EVC ด้วย</span>
+                        </div>
+
+                        <!-- ค่าดิบมาจากทางสำรอง (float) ไม่ใช่ข้อความของโมเดล -> ศูนย์ท้ายทศนิยมอาจหาย -->
+                        <div id="rawSourceWarning" class="warning-banner hidden" role="alert">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>ระบบอ่านข้อความดิบของโมเดลไม่ได้ จึงใช้ค่าสำรองแทน — เลข 0 ท้ายทศนิยมอาจหายไป
+                                กรุณาเทียบจำนวนหลักกับภาพ โดยเฉพาะ TURBINE V.</span>
+                        </div>
+
+                        <!-- ช่องแก้ค่าทีละหลัก (index.js สร้างจาก /api/reading-fields) -->
+                        <div id="fieldEditor" class="field-editor"></div>
+
+                        <!-- กดครั้งเดียว = บันทึกลง DB + ดาวน์โหลด PDF -->
+                        <div class="export-bar">
+                            <!-- ผลต่างค่าสะสมติดลบ (server ตัดสิน) — เตือนอย่างเดียว ยังบันทึกได้ -->
+                            <div id="decreaseWarning" class="warning-banner hidden" role="alert">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                <div>
+                                    <ul id="decreaseList" class="decrease-list"></ul>
+                                    <div class="decrease-hint">ยังบันทึกได้ตามปกติ หากตรวจแล้วค่าถูกต้อง</div>
+                                </div>
+                            </div>
+                            <div id="exportStatus" class="export-status"></div>
+                            <button id="exportBtn" class="btn btn-primary btn-full" disabled>
+                                <i class="fa-solid fa-file-pdf"></i> Export to PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="resultsJsonContainer" class="tab-content hidden">
+                    <div class="json-view">
+                        <div class="json-toolbar">
+                            <span>Structured JSON Response</span>
+                            <button id="copyJsonBtn" class="btn btn-outline btn-sm">
+                                <i class="fa-regular fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <div class="json-block">
+                            <code id="jsonPreCode">{}</code>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <footer class="app-footer">
+            &copy; Meter Industrial Reader Portal ·
+        </footer>
+
+    </div>
+    <script src="/static/theme.js?v=6"></script>
+    <script src="/static/index.js?v=14"></script>
+</body>
+
+</html>

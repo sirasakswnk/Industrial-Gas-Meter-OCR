@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Use Case Diagram</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#f1f5f9}
+  body{font-family:'Sarabun',"TH Sarabun New",sans-serif; color:#0f172a;
+       -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  .sheet{width:1190px; margin:24px auto; background:#fff; padding:26px 28px 30px; border-radius:6px}
+  .head{text-align:center; margin-bottom:6px}
+  .head h1{font-size:22px; font-weight:700; margin:0 0 3px}
+  .head p{font-size:16.5px; color:#475569; margin:0}
+  text{font-family:'Sarabun',"TH Sarabun New",sans-serif}
+  .boundary{fill:#334155; font-size:15.5px; font-weight:700}
+  .ucth{fill:#0f172a; font-size:15px; font-weight:600}
+  .ucen{fill:#64748b; font-size:11.5px}
+  .actorname{fill:#0f172a; font-size:14.5px; font-weight:700}
+  .actorsub{fill:#64748b; font-size:12.5px}
+  .stereo{fill:#475569; font-size:12.5px; font-style:italic}
+  .caption{text-align:center; margin-top:8px; font-size:17px; font-weight:600}
+  @page{size:A4 portrait; margin:12mm}
+  @media print{
+    html,body{background:#fff}
+    .sheet{width:auto; margin:0; padding:0; border-radius:0}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="head">
+    <h1>Use Case Diagram</h1>
+    <p>ความสามารถของระบบและผู้มีส่วนเกี่ยวข้อง</p>
+  </div>
+  <svg viewBox="0 0 1130 872" width="100%" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10" fill="none" stroke="#475569" stroke-width="1.6"/>
+    </marker>
+  </defs>
+  <rect x="248" y="62" width="600" height="746" rx="8" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/><text x="548.0" y="90" text-anchor="middle" class="boundary">ระบบอ่านค่ามิเตอร์ก๊าซอุตสาหกรรมอัตโนมัติด้วยปัญญาประดิษฐ์</text><line x1="140" y1="430" x2="368.1" y2="183.7" stroke="#1e293b" stroke-width="1.4"/><line x1="140" y1="430" x2="356.5" y2="266.6" stroke="#1e293b" stroke-width="1.4"/><line x1="140" y1="430" x2="324.4" y2="369.0" stroke="#1e293b" stroke-width="1.4"/><line x1="140" y1="430" x2="287.3" y2="452.2" stroke="#1e293b" stroke-width="1.4"/><line x1="140" y1="430" x2="338.5" y2="544.0" stroke="#1e293b" stroke-width="1.4"/><line x1="140" y1="430" x2="360.5" y2="637.0" stroke="#1e293b" stroke-width="1.4"/><line x1="140" y1="430" x2="370.5" y2="722.1" stroke="#1e293b" stroke-width="1.4"/><line x1="514.4" y1="349.5" x2="946" y2="362" stroke="#1e293b" stroke-width="1.4"/><line x1="482.0" y1="320.7" x2="634.0" y2="277.3" stroke="#475569" stroke-width="1.4" stroke-dasharray="7 5" marker-end="url(#open)"/><text x="558" y="291" text-anchor="middle" class="stereo">&#171;include&#187;</text><line x1="602.8" y1="472.8" x2="513.2" y2="467.2" stroke="#475569" stroke-width="1.4" stroke-dasharray="7 5" marker-end="url(#open)"/><text x="558" y="462" text-anchor="middle" class="stereo">&#171;extend&#187;</text><ellipse cx="400" cy="152" rx="116" ry="33" fill="#f8fafc" stroke="#334155" stroke-width="1.6"/><text x="400" y="149" text-anchor="middle" class="ucth">จัดการชุดมิเตอร์</text><text x="400" y="167" text-anchor="middle" class="ucen">UC-01 · Manage Meter Runs</text><ellipse cx="400" cy="236" rx="116" ry="33" fill="#f8fafc" stroke="#334155" stroke-width="1.6"/><text x="400" y="233" text-anchor="middle" class="ucth">นำเข้าภาพถ่ายมิเตอร์</text><text x="400" y="251" text-anchor="middle" class="ucen">UC-02 · Upload Images</text><ellipse cx="400" cy="344" rx="116" ry="33" fill="#f8fafc" stroke="#334155" stroke-width="1.6"/><text x="400" y="341" text-anchor="middle" class="ucth">อ่านค่ามิเตอร์จากภาพ</text><text x="400" y="359" text-anchor="middle" class="ucen">UC-03 · Read Meter Values</text><ellipse cx="716" cy="254" rx="116" ry="33" fill="#f8fafc" stroke="#334155" stroke-width="1.6"/><text x="716" y="251" text-anchor="middle" class="ucth">ตรวจจับและปรับภาพหน้าปัด</text><text x="716" y="269" text-anchor="middle" class="ucen">UC-04 · Detect &amp; Rectify Display</text><ellipse cx="400" cy="460" rx="116" ry="33" fill="#f8fafc" stroke="#334155" stroke-width="1.6"/><text x="400" y="457" text-anchor="middle" class="ucth">ตรวจแก้ค่าที่อ่านได้</text><text x="400" y="475" text-anchor="middle" class="ucen">UC-05 · Review &amp; Correct Values</text><ellipse cx="716" cy="480" rx="116" ry="33" fill="#f8fafc" stroke="#334155" stroke-width="1.6"/><text x="716" y="477" text-anchor="middle" class="ucth">ตรวจสอบค่าที่ระบบเตือน</text><text x="716" y="495" text-anchor="middle" class="ucen">UC-06 · Verify Flagged Values</text><ellipse cx="400" cy="572" rx="116" ry="33" fill="#f8fafc" stroke="#334155" stroke-width="1.6"/><text x="400" y="569" text-anchor="middle" class="ucth">บันทึกการจดค่าและออกรายงาน</text><text x="400" y="587" text-anchor="middle" class="ucen">UC-07 · Save Reading &amp; Export</text><ellipse cx="400" cy="668" rx="116" ry="33" fill="#f8fafc" stroke="#334155" stroke-width="1.6"/><text x="400" y="665" text-anchor="middle" class="ucth">เรียกดูประวัติการจดค่า</text><text x="400" y="683" text-anchor="middle" class="ucen">UC-08 · View Reading History</text><ellipse cx="400" cy="754" rx="116" ry="33" fill="#f8fafc" stroke="#334155" stroke-width="1.6"/><text x="400" y="751" text-anchor="middle" class="ucth">เรียกดูและคัดลอกข้อมูลดิบ</text><text x="400" y="769" text-anchor="middle" class="ucen">UC-09 · View &amp; Copy Raw JSON</text><g><circle cx="110" cy="398.0" r="15.0" fill="#fff" stroke="#1e293b" stroke-width="2"/><line x1="110" y1="413.0" x2="110" y2="452.0" stroke="#1e293b" stroke-width="2"/><line x1="86.0" y1="428.0" x2="134.0" y2="428.0" stroke="#1e293b" stroke-width="2"/><line x1="110" y1="452.0" x2="90.0" y2="488.0" stroke="#1e293b" stroke-width="2"/><line x1="110" y1="452.0" x2="130.0" y2="488.0" stroke="#1e293b" stroke-width="2"/><text x="110" y="510.0" text-anchor="middle" class="actorname">เจ้าหน้าที่</text><text x="110" y="528.0" text-anchor="middle" class="actorsub">ผู้บันทึกค่ามิเตอร์</text></g><g><circle cx="980" cy="335.04" r="13.2" fill="#fff" stroke="#1e293b" stroke-width="2"/><line x1="980" y1="348.24" x2="980" y2="382.56" stroke="#1e293b" stroke-width="2"/><line x1="958.88" y1="361.44" x2="1001.12" y2="361.44" stroke="#1e293b" stroke-width="2"/><line x1="980" y1="382.56" x2="962.4" y2="414.24" stroke="#1e293b" stroke-width="2"/><line x1="980" y1="382.56" x2="997.6" y2="414.24" stroke="#1e293b" stroke-width="2"/><text x="980" y="433.6" text-anchor="middle" class="actorname">แบบจำลองอ่านค่า</text><text x="980" y="449.44" text-anchor="middle" class="actorsub">«external system»</text></g>
+</svg>
+  <div class="caption">ภาพที่ 3.3 แผนภาพแสดงการทำงานของระบบ (Use Case Diagram)</div>
+</div>
+</body>
+</html>
