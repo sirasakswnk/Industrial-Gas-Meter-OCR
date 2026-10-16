@@ -1,0 +1,102 @@
+<!doctype html><html lang="th"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>สไลด์ 1.1 — ระบบจัดเก็บข้อมูลการจดค่า</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0E2A47; --steel:#2F6690; --pipe:#9CB8CF;
+    --paper:#F4F7FA; --ink:#1B2733; --muted:#5B6B7A;
+    --line:#DCE5EC; --soft:#E6EFF7; --old:#8A96A3; --oldbg:#EEF1F4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#D9E0E6;font-family:"IBM Plex Sans Thai","Sarabun","Noto Sans Thai",sans-serif;color:var(--ink)}
+  .stage{height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .slide{
+    width:1280px;height:720px;flex:none;background:var(--paper);position:relative;
+    transform-origin:center;box-shadow:0 8px 30px rgba(14,42,71,.18);
+    display:grid;grid-template-rows:auto 1fr auto auto;padding:48px 72px 28px;
+  }
+  .slide::before{content:"";position:absolute;inset:0 0 auto 0;height:8px;background:var(--steel)}
+
+  .tag{display:inline-block;font-size:14px;font-weight:600;color:var(--steel);background:var(--soft);
+       border-radius:999px;padding:3px 12px;margin-bottom:10px}
+  h1{font-size:38px;font-weight:700;color:var(--navy);line-height:1.2}
+  .sub{font-size:18px;color:var(--muted);margin-top:4px}
+  .sub b{color:var(--ink);font-weight:600}
+
+  /* ตารางเทียบ ก่อน → หลัง */
+  .compare{display:grid;grid-template-columns:190px .82fr 56px 1.18fr;align-content:center;row-gap:14px;margin-top:22px}
+  .colhead{font-size:15px;font-weight:700;padding:0 20px 2px}
+  .colhead.old{color:var(--old)}
+  .colhead.new{color:var(--steel)}
+  .topic{font-size:17px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:10px}
+  .topic .n{flex:none;width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;
+            font-size:15px;display:flex;align-items:center;justify-content:center}
+  .cell{border-radius:10px;padding:16px 20px;font-size:17px;line-height:1.45;display:flex;align-items:center;min-height:86px}
+  .cell.old{background:var(--oldbg);color:var(--old);border:1px dashed #C9D1D9}
+  .cell.new{background:#fff;border:1px solid var(--line);border-left:6px solid var(--steel);color:var(--ink)}
+  .cell.new b{color:var(--navy)}
+  .nw{white-space:nowrap}
+  .arrow{display:flex;align-items:center;justify-content:center}
+  .arrow svg{width:34px;height:34px}
+
+  .concl{margin-top:18px;background:var(--navy);color:#fff;border-radius:10px;padding:14px 22px;
+         font-size:17px;line-height:1.45;display:flex;gap:14px;align-items:center}
+  .concl .k{flex:none;font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--pipe);
+            border:1px solid var(--pipe);border-radius:6px;padding:2px 8px}
+
+  footer{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:14px;color:var(--muted)}
+  footer .pg{font-weight:600;color:var(--steel);font-size:16px}
+</style>
+</head><body><div class="stage">
+  <section data-document-role="page" data-label="ระบบจัดเก็บข้อมูลการจดค่า" class="slide" id="slide" aria-label="สไลด์ 1.1 ระบบจัดเก็บข้อมูลการจดค่า">
+    <header>
+      <span class="tag">ข้อเสนอแนะที่ 1 จาก 3 · พี่เลี้ยง</span>
+      <h1>ระบบจัดเก็บข้อมูลการจดค่า</h1>
+      <p class="sub">ข้อเสนอแนะ: <b>ต้องบันทึกได้ว่าการจดแต่ละครั้งได้ค่าเท่าไร</b> เพื่อเทียบกับครั้งก่อนและออกเอกสารได้</p>
+    </header>
+
+    <div class="compare">
+      <div></div>
+      <div class="colhead old">รอบนำเสนอครั้งแรก</div>
+      <div></div>
+      <div class="colhead new">ตอนนี้</div>
+
+      <div class="topic"><span class="n">1</span>การเก็บข้อมูล</div>
+      <div class="cell old">อ่านค่าแล้วแสดงบนหน้าจอ<br>ปิดหน้าเว็บแล้วข้อมูลหายทั้งหมด</div>
+      <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#2F6690" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+      <div class="cell new"><span>บันทึก<b>ทุกการจด</b>ลงฐานข้อมูล ทั้งค่าที่โมเดลอ่าน ค่าที่<span class="nw">เจ้าหน้าที่</span>ยืนยัน และภาพต้นฉบับ</span></div>
+
+      <div class="topic"><span class="n">2</span>ค่าครั้งก่อน</div>
+      <div class="cell old">ไม่รู้ว่าครั้งก่อนจดได้เท่าไร<br>ต้องเปิดเอกสารเดิมเทียบเอง</div>
+      <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#2F6690" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+      <div class="cell new"><span>แสดง<b>ค่าครั้งก่อนและผลต่าง</b>อัตโนมัติ พร้อมเตือนเมื่อค่าสะสมลดลง</span></div>
+
+      <div class="topic"><span class="n">3</span>เอกสาร</div>
+      <div class="cell old">ไม่มีเอกสารออกจากระบบ</div>
+      <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#2F6690" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+      <div class="cell new"><span>ออก<b>ใบแจ้งปริมาณการใช้ก๊าซ (PDF)</b> ตามแบบฟอร์ม <span class="nw">F-ปร.บคต.-0007</span> และ export ซ้ำจากหน้าประวัติได้</span></div>
+    </div>
+
+    <div class="concl">
+      <span class="k">สถานะ</span>
+      <span>พัฒนาเสร็จและทดสอบครบขั้นตอนด้วยภาพถ่ายจริงแล้ว: เลือกชุดมิเตอร์ → อ่านค่า → ตรวจแก้ → บันทึก → ออก PDF → ดูประวัติ</span>
+    </div>
+
+    <footer>
+      <span>ระบบอ่านค่ามิเตอร์ก๊าซอัตโนมัติด้วยปัญญาประดิษฐ์</span>
+      <span class="pg">1.1</span>
+    </footer>
+  </section>
+</div>
+<script>
+  // ย่อสไลด์ให้พอดีหน้าต่างเวลาเปิดดู (ขนาดจริง 1280×720)
+  (function(){
+    var s=document.getElementById('slide');
+    function fit(){var k=Math.min(window.innerWidth/1320,window.innerHeight/760,1);s.style.transform='scale('+k+')';}
+    window.addEventListener('resize',fit);fit();
+  })();
+</script>
+</body></html>
