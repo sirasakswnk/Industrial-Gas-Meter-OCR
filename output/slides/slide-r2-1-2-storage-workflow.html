@@ -1,0 +1,167 @@
+<!doctype html><html lang="th"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>สไลด์ 1.2 — ขั้นตอนการทำงานใหม่</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0E2A47; --steel:#2F6690; --pipe:#9CB8CF;
+    --paper:#F4F7FA; --ink:#1B2733; --muted:#5B6B7A;
+    --line:#DCE5EC; --soft:#E6EFF7; --old:#8A96A3; --oldbg:#EEF1F4; --accent:#B4532A;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#D9E0E6;font-family:"IBM Plex Sans Thai","Sarabun","Noto Sans Thai",sans-serif;color:var(--ink)}
+  .stage{height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .slide{
+    width:1280px;height:720px;flex:none;background:var(--paper);position:relative;
+    transform-origin:center;box-shadow:0 8px 30px rgba(14,42,71,.18);
+    display:grid;grid-template-rows:auto 1fr auto auto;padding:48px 72px 28px;
+  }
+  .slide::before{content:"";position:absolute;inset:0 0 auto 0;height:8px;background:var(--steel)}
+
+  .tag{display:inline-block;font-size:14px;font-weight:600;color:var(--steel);background:var(--soft);
+       border-radius:999px;padding:3px 12px;margin-bottom:10px}
+  h1{font-size:38px;font-weight:700;color:var(--navy);line-height:1.2}
+  .sub{font-size:18px;color:var(--muted);margin-top:4px}
+
+  .body{display:flex;flex-direction:column;justify-content:center;margin-top:10px}
+
+  /* แถวขั้นตอน: การ์ด 166px × 6 + ลูกศร 28px × 5 = 1136px */
+  .flow{display:flex;align-items:stretch}
+  .step{width:166px;flex:none;background:#fff;border:1px solid var(--line);border-top:5px solid var(--steel);
+        border-radius:4px 4px 10px 10px;padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;position:relative}
+  .step.old{border-top-color:var(--old)}
+  .step.key{background:var(--navy);border-color:var(--navy);border-top-color:var(--accent);color:#fff}
+  .step .hd{display:flex;align-items:center;justify-content:space-between}
+  .step .n{width:26px;height:26px;border-radius:50%;background:var(--steel);color:#fff;font-size:14px;font-weight:700;
+           display:flex;align-items:center;justify-content:center}
+  .step.old .n{background:var(--old)}
+  .step.key .n{background:var(--accent)}
+  .badge{font-size:11.5px;font-weight:700;border-radius:999px;padding:1px 8px}
+  .badge.new{color:var(--steel);background:var(--soft)}
+  .badge.was{color:var(--old);background:var(--oldbg)}
+  .step.key .badge.new{color:var(--navy);background:#fff}
+  .step h3{font-size:17px;font-weight:700;color:var(--navy);line-height:1.25}
+  .step.key h3{color:#fff}
+  .step p{font-size:13.5px;line-height:1.4;color:var(--muted)}
+  .step.key p{color:#D3DEE8}
+  .shot{margin-top:auto;height:132px;border:1.5px dashed #B5C4D1;border-radius:6px;background:#F1F5F8;
+        display:flex;align-items:center;justify-content:center;text-align:center;font-size:11.5px;line-height:1.3;color:#8797A6;padding:6px}
+  .step.key .shot{background:rgba(255,255,255,.06);border-color:#4F6E8C;color:#9CB8CF}
+  .arr{width:28px;flex:none;display:flex;align-items:center;justify-content:center}
+  .arr svg{width:22px;height:22px}
+
+  /* เส้นวนกลับ: ฐานข้อมูล (ขั้น 4) -> ค่าครั้งก่อน (ขั้น 3) */
+  .loop{position:relative;height:58px}
+  .loop svg{position:absolute;left:0;top:0;width:1136px;height:64px;overflow:visible}
+  .loop .lbl{position:absolute;left:432px;top:30px;background:none;width:272px;text-align:center;font-size:14px;font-weight:600;color:var(--accent);
+             background:var(--paper);padding:0 6px}
+
+  .legend{display:flex;gap:20px;font-size:13.5px;color:var(--muted);margin-top:2px}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .legend i{display:inline-block;width:18px;height:5px;border-radius:2px}
+
+  .concl{margin-top:12px;background:var(--navy);color:#fff;border-radius:10px;padding:13px 22px;
+         font-size:17px;line-height:1.45;display:flex;gap:14px;align-items:center}
+  .concl .k{flex:none;font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--pipe);
+            border:1px solid var(--pipe);border-radius:6px;padding:2px 8px}
+  .concl b{color:#fff}
+
+  footer{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:14px;color:var(--muted)}
+  footer .pg{font-weight:600;color:var(--steel);font-size:16px}
+</style>
+</head><body><div class="stage">
+  <section data-document-role="page" data-label="ขั้นตอนการทำงานใหม่" class="slide" id="slide" aria-label="สไลด์ 1.2 ขั้นตอนการทำงานใหม่">
+    <header>
+      <span class="tag">ข้อเสนอแนะที่ 1 จาก 3 · พี่เลี้ยง</span>
+      <h1>ขั้นตอนการทำงานใหม่</h1>
+      <p class="sub">จากการอ่านค่าครั้งเดียวแล้วจบ เป็นวงจรการจดที่ข้อมูลถูกเก็บและนำกลับมาใช้ในการจดครั้งถัดไป</p>
+    </header>
+
+    <div class="body">
+      <div class="flow">
+        <div class="step">
+          <div class="hd"><span class="n">1</span><span class="badge new">ใหม่</span></div>
+          <h3>เลือกชุดมิเตอร์</h3>
+          <p>1 Meter Run = EVC + Turbine Meter</p>
+          <div class="shot">ภาพหน้าจอ<br>หน้าเลือก Meter Run</div>
+        </div>
+        <div class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="#2F6690" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+
+        <div class="step old">
+          <div class="hd"><span class="n">2</span><span class="badge was">เดิม</span></div>
+          <h3>อ่านค่าจากภาพ</h3>
+          <p>ตรวจจับหน้าปัด ปรับภาพให้ตรง แล้วให้แบบจำลองอ่านค่า</p>
+          <div class="shot">ภาพหน้าจอ<br>อัปโหลดภาพ</div>
+        </div>
+        <div class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="#2F6690" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+
+        <div class="step">
+          <div class="hd"><span class="n">3</span><span class="badge new">ใหม่</span></div>
+          <h3>ตรวจแก้ค่า</h3>
+          <p>ช่องตัวเลขทีละหลัก เทียบกับค่าจดครั้งก่อน</p>
+          <div class="shot">ภาพหน้าจอ<br>ช่องทีละหลัก + ค่าครั้งก่อน</div>
+        </div>
+        <div class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="#2F6690" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+
+        <div class="step key">
+          <div class="hd"><span class="n">4</span><span class="badge new">ใหม่</span></div>
+          <h3>บันทึกลงฐานข้อมูล</h3>
+          <p>เก็บค่าที่ยืนยัน ค่าดิบจากโมเดล และภาพต้นฉบับ</p>
+          <div class="shot">ไอคอนฐานข้อมูล<br>(SQLite)</div>
+        </div>
+        <div class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="#2F6690" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+
+        <div class="step">
+          <div class="hd"><span class="n">5</span><span class="badge new">ใหม่</span></div>
+          <h3>ออกใบแจ้ง PDF</h3>
+          <p>ค่าครั้งนี้ ค่าครั้งก่อน และผลต่าง</p>
+          <div class="shot">ภาพตัวอย่าง<br>PDF ใบแจ้ง</div>
+        </div>
+        <div class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="#2F6690" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+
+        <div class="step">
+          <div class="hd"><span class="n">6</span><span class="badge new">ใหม่</span></div>
+          <h3>ดูประวัติย้อนหลัง</h3>
+          <p>กรองตาม Run และ export PDF ซ้ำได้</p>
+          <div class="shot">ภาพหน้าจอ<br>หน้าประวัติ</div>
+        </div>
+      </div>
+
+      <!-- เส้นวนกลับจากขั้น 4 (กลางการ์ด x=665) ไปขั้น 3 (x=471) -->
+      <div class="loop">
+        <svg viewBox="0 0 1136 64">
+          <defs><marker id="ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0L10 5L0 10z" fill="#B4532A"/></marker></defs>
+          <path d="M665 2 V22 H471 V8" fill="none" stroke="#B4532A" stroke-width="2.4" stroke-dasharray="6 4" marker-end="url(#ah)"/>
+        </svg>
+        <div class="lbl">การจดครั้งถัดไป: ดึงค่าครั้งก่อนมาเทียบ</div>
+      </div>
+
+      <div class="legend">
+        <span><i style="background:#2F6690"></i>เพิ่มตามข้อเสนอแนะ</span>
+        <span><i style="background:#8A96A3"></i>มีตั้งแต่รอบนำเสนอครั้งแรก</span>
+      </div>
+    </div>
+
+    <div class="concl">
+      <span class="k">สรุป</span>
+      <span>ฐานข้อมูลเป็นศูนย์กลางของขั้นตอนที่ 4–6 และ<b>ส่งค่าครั้งก่อนกลับไปให้ขั้นตอนที่ 3</b> เจ้าหน้าที่จึงเห็นค่าเดิมทันทีขณะตรวจแก้</span>
+    </div>
+
+    <footer>
+      <span>ระบบอ่านค่ามิเตอร์ก๊าซอัตโนมัติด้วยปัญญาประดิษฐ์</span>
+      <span class="pg">1.2</span>
+    </footer>
+  </section>
+</div>
+<script>
+  // ย่อสไลด์ให้พอดีหน้าต่างเวลาเปิดดู (ขนาดจริง 1280×720)
+  (function(){
+    var s=document.getElementById('slide');
+    function fit(){var k=Math.min(window.innerWidth/1320,window.innerHeight/760,1);s.style.transform='scale('+k+')';}
+    window.addEventListener('resize',fit);fit();
+  })();
+</script>
+</body></html>
